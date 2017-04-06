@@ -86,9 +86,9 @@ void boiler_init() {
   servo1.attach(11);
   servo2.attach(12);
   servo3.attach(13);//the pin for the servo control // Указываем к какому пину подключена servo
-  setServo1(40);
-  setServo2(60);
-  setServo3(100);
+  setServo1(0);
+  setServo2(0);
+  setServo3(0);
 }
 
 // управление котлом
