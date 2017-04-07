@@ -14,7 +14,7 @@
 #include "display.h"
 
 extern signed long device_id;
-extern char authorization_key;
+extern char* authorization_key;
 
 //-------Select your platform----------------
 #include "Ethernet_Shield_W5100.h"
