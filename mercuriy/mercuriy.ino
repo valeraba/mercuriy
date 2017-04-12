@@ -65,7 +65,7 @@ static struct MgtClient client;
 static void writeAsync_s12(__uint8 aValue) {
   // TODO insert your code in the handler
   setServo1(aValue);
-  signal_update_int(s12, aValue, getUTCTime());
+  signal_update_int(s12, getServo1(), getUTCTime());
   mgt_send(&client, s12);
   debugLog(F("write s12: %i\n"), aValue);
 }
@@ -74,7 +74,7 @@ static void writeAsync_s12(__uint8 aValue) {
 static void writeAsync_s13(__uint8 aValue) {
   // TODO insert your code in the handler
   setServo2(aValue);
-  signal_update_int(s13, aValue, getUTCTime());
+  signal_update_int(s13, getServo2(), getUTCTime());
   mgt_send(&client, s13);
   debugLog(F("write s13: %i\n"), aValue);
 }
@@ -83,7 +83,7 @@ static void writeAsync_s13(__uint8 aValue) {
 static void writeAsync_s14(__uint8 aValue) {
   // TODO insert your code in the handler
   setServo3(aValue);
-  signal_update_int(s14, aValue, getUTCTime());
+  signal_update_int(s14, getServo3(), getUTCTime());
   mgt_send(&client, s14);
   debugLog(F("write s14: %i\n"), aValue);
 }
@@ -144,7 +144,7 @@ void setup() {
   s8 = mgt_createSignal(&client, "3_Kotel_Obratka", tpFloat, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_AVERAGE | STORE_UNIT_SEC | 15, 0);
   s9 = mgt_createSignal(&client, "4_Verh_TA", tpFloat, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_AVERAGE | STORE_UNIT_SEC | 15, 0);
   s10 = mgt_createSignal(&client, "5_Niz_TA", tpFloat, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_AVERAGE | STORE_UNIT_SEC | 15, 0);
-  s11 = mgt_createSignal(&client, "6_Test_Sensor", tpFloat, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_OFF, 0);
+  s11 = mgt_createSignal(&client, "oxygen", tpFloat, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_AVERAGE | STORE_UNIT_SEC | 15, 0);
   s12 = mgt_createSignal(&client, "servo1", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_ASYNC_WRITE, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s13 = mgt_createSignal(&client, "servo2", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_ASYNC_WRITE, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s14 = mgt_createSignal(&client, "servo3", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_ASYNC_WRITE, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);

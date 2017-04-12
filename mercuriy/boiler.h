@@ -28,7 +28,7 @@ void setServo3(byte aValue);
 
 
 //-------------присваеваем тип значения переменной для описывающей состояние Отопительной системы - boolean---------
-extern boolean reactorActive, accumulatorWarm, systemCRIHot, systemVeryHot, dymVeryCold, postplenieGar;
+//extern boolean reactorActive, accumulatorWarm, systemCRIHot, systemVeryHot, dymVeryCold, postplenieGar;
 
 //----датчики--------------
 extern float txaTemp; // Dymovaya_Truba"; // ТХА  
