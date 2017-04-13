@@ -7,7 +7,7 @@
 */
 
 #define COUNT_SIGNALS 14
-#define COUNT_STORE 13
+#define COUNT_STORE 14
 #include "Types.h"
 #include "MgtClient.h"
 #include "boiler.h"
