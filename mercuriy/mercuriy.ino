@@ -1,8 +1,8 @@
 /*Используются цифровые выходы
-* Дисплей: 22, 23, 24
-* Реле: 44, 45, 46, 47, 48
-* Термопара: 34, 36, 38
-* DS18b20: 27, 29, 30, 31
+* Дисплей: 44, 46, 48
+* Реле: 39, 41, 43, 45, 47
+* Термопара: 24, 26, 28
+* DS18b20: 25, 27, 29, 31
 * Сервоприводы: 11, 12, 13
 */
 
@@ -25,9 +25,9 @@ extern char* authorization_key;
 #include "Adafruit_MAX31855.h"
 #include <OneWire.h>
 //--------назначил выходы Ардуино для взаимодействия с MAX31855-------
-#define thermoDO  34
-#define thermoCS  38
-#define thermoCLK 36
+#define thermoDO  28
+#define thermoCS  26
+#define thermoCLK 24
 Adafruit_MAX31855 thermocouple(thermoCLK, thermoCS, thermoDO);
 
 
@@ -269,10 +269,10 @@ bool run_ds(TimeStamp time)
   static bool isFind[4] = { false, false, false, false };
   static byte rom[4][8];
   static OneWire ds[4] = { 
-    OneWire(29), // Температура воды Котел подача  ДТ2
-    OneWire(30), // Температура воды Котел обратка ДТ3
+    OneWire(31), // Температура воды Котел подача  ДТ2
+    OneWire(29), // Температура воды Котел обратка ДТ3
     OneWire(27), // Температура воды ТА Верхняя часть ДТ4
-    OneWire(31) // Температура воды ТА Нижняя  часть ДТ5
+    OneWire(25) // Температура воды ТА Нижняя  часть ДТ5
   };
 
   if ((time - convertTime) < 800)

@@ -31,7 +31,8 @@ void sleepms(__uint32 aMilliseconds) {
 
 static bool socket_open(const char* aHost, __uint16 aPort) {
 	socket.stop();
-	if (Ethernet.begin(mac) == 0) {
+//if (Ethernet.begin(mac) == 0) {
+  if (Ethernet.begin(mac, 5000, 4000) == 0) { // нужно подобрать оптимальные задержки
 		Serial.println("Failed to configure Ethernet using DHCP");
 		Ethernet.begin(mac, ip);
 	}
