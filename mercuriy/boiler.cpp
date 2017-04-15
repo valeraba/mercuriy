@@ -3,11 +3,11 @@
 #include <PWMServo.h> 
 
 //------- закрепляю за оборудованием цифровые выходы ардуино---------------
-#define nasosKranKotel 39     // Реле 1 - верхнее - НЦ1, КЭ1 
-#define dymosos 41            // Реле 2 - второе сверху - Дымосос 
-#define nasosPotrebiteli 43   // Реле 3 - третье сверху НЦ2, НЦ3, НЦ4 
-#define kranTA 45             // Реле 3 - четвертое сверху - КЭ2 
-#define zaslonkaVozduha 47    // Реле 1 второго блока - верхнее  - МЗ 
+#define nasosKranKotel 39     // Реле 4 - нижнее - НЦ1, КЭ1 
+#define dymosos 41            // Реле 3 - второе снизу - Дымосос 
+#define nasosPotrebiteli 43   // Реле 2 - третье снизу НЦ2, НЦ3, НЦ4 
+#define kranTA 45             // Реле 1 - верхнее - КЭ2 
+#define zaslonkaVozduha 47    // Реле 4 нижний блок (нижнее)- МЗ 
 
 static PWMServo servo1;
 static PWMServo servo2;
