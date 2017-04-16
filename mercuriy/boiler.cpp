@@ -157,16 +157,6 @@ void boiler_work() {
 		else
 			off(kranTA);
 
-		// Условия работы дымососа
-		if (txaTemp < 114) { // Температура дыма меньше 114 градусов
-			on(zaslonkaVozduha);// Закроет заслонку дым трубы, 
-			on(dymosos);// включит мотор дымососа;  
-		}
-		else if (txaTemp > 135) { // Температура дыма больше 135 градусов
-			off(dymosos);// остановит мотор дымососа
-			off(zaslonkaVozduha);// Откроет заслонку дым. трубы
-		}
-
 		static byte saveServo1; // здесь сохраннёные состояния положений заслонок
 		static byte saveServo2;
 		static byte saveServo3;
@@ -187,7 +177,15 @@ void boiler_work() {
 			}
 		}
 		else {
-			off(zaslonkaVozduha); // откроет подачу воздуха в котел
+      // Условия работы дымососа
+      if (txaTemp < 114) { // Температура дыма меньше 114 градусов
+        on(zaslonkaVozduha);// Закроет заслонку дым трубы, 
+        on(dymosos);// включит мотор дымососа;  
+      }
+      else if (txaTemp > 135) { // Температура дыма больше 135 градусов
+        off(dymosos);// остановит мотор дымососа
+        off(zaslonkaVozduha);// Откроет заслонку дым. трубы
+      }
 
 			if (prevState) { // если произошло изменение состояния
 				setServo1(saveServo1); // восстановим сохранённое положение всех заслонок
