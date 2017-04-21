@@ -4,6 +4,7 @@
 * Термопара: 24, 26, 28
 * DS18b20: 25, 27, 29, 31
 * Сервоприводы: 11, 12, 13
+* Лябда: A0
 */
 
 #define COUNT_SIGNALS 14
@@ -30,6 +31,8 @@ extern char* authorization_key;
 #define thermoCLK 24
 Adafruit_MAX31855 thermocouple(thermoCLK, thermoCS, thermoDO);
 
+#define oxygenPin A0
+
 
 extern struct PortableSocket mySocket;
 
@@ -53,7 +56,7 @@ static struct Signal* s7; // 2_Kotel_Vyhod
 static struct Signal* s8; // 3_Kotel_Obratka
 static struct Signal* s9; // 4_Verh_TA
 static struct Signal* s10; // 5_Niz_TA
-static struct Signal* s11; // 6_Test_Sensor
+static struct Signal* s11; // oxygen
 static struct Signal* s12; // servo1
 static struct Signal* s13; // servo2
 static struct Signal* s14; // servo3
@@ -109,6 +112,7 @@ static void handler(enum OpCode aOpCode, struct Signal* aSignal, struct SignalVa
 
 void setup() {
   // TODO insert your setup code
+  analogReference(INTERNAL2V56);
   boiler_init();
   display_init();
   //----------------
@@ -170,7 +174,8 @@ struct Period _1_min = { 1L * 60 * 1000, 0 };
 
 
 void loop() {
-  bool isNewValue = run_ds(getUTCTime()); // пробуем считать значение датчиков
+  TimeStamp t = getUTCTime();
+  bool isNewValue = run_ds(t); // пробуем считать значение датчиков
 
   if (isNewValue) { // если вычитаны новые значения
     //---- Начало моего рабочего кода (мой loop())--
@@ -183,32 +188,36 @@ void loop() {
     Serial.print("Smoke temp:");
     Serial.println(txaTemp);
 
+    oxygen = (float)analogRead(oxygenPin) * (2.56 / 1024); // пока в вольтах
+
     boiler_work();
     display_draw();
+    
+    signal_update_double(s6, txaTemp, t);  
+    if (sensorOnline[Kotel_Vyhod])
+      signal_update_double(s7, tempCels[Kotel_Vyhod], t);
+    if (sensorOnline[Kotel_Obratka])
+      signal_update_double(s8, tempCels[Kotel_Obratka], t);
+    if (sensorOnline[Verh_TA])
+      signal_update_double(s9, tempCels[Verh_TA], t);
+    if (sensorOnline[Niz_TA])
+      signal_update_double(s10, tempCels[Niz_TA], t);
+    signal_update_double(s11, oxygen, t);  
   }
 
   if (mgt_run(&client) == stConnected) {
-    TimeStamp t = getUTCTime();
+    
     if (isNewValue) { // если вычитаны новые значения     
-      signal_update_double(s6, txaTemp, t);
       mgt_send(&client, s6);
-      
-      if (sensorOnline[Kotel_Vyhod]) {
-        signal_update_double(s7, tempCels[Kotel_Vyhod], t);
+      if (sensorOnline[Kotel_Vyhod])
         mgt_send(&client, s7);
-      }
-      if (sensorOnline[Kotel_Obratka]) {
-        signal_update_double(s8, tempCels[Kotel_Obratka], t);
+      if (sensorOnline[Kotel_Obratka])
         mgt_send(&client, s8);
-      }
-      if (sensorOnline[Verh_TA]) {
-        signal_update_double(s9, tempCels[Verh_TA], t);
+      if (sensorOnline[Verh_TA])
         mgt_send(&client, s9);
-      }
-      if (sensorOnline[Niz_TA]) {
-        signal_update_double(s10, tempCels[Niz_TA], t);
+      if (sensorOnline[Niz_TA])
         mgt_send(&client, s10);
-      }
+      mgt_send(&client, s11);    
     }
 
     
@@ -219,8 +228,9 @@ void loop() {
       getKranTA(),
       getZaslonkaVozduha()
     };
-
+   
     Signal* s = s1;
+    t = getUTCTime();
 
     if (periodEvent(&_1_min, t)) {
       for (byte i = 0; i < 5; i++) {

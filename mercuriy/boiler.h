@@ -32,6 +32,7 @@ void setServo3(byte aValue);
 
 //----датчики--------------
 extern float txaTemp; // Dymovaya_Truba"; // ТХА  
+extern float oxygen;
 extern float tempCels[4]; // массив считанных значений 1-wire
                   // Kotel_Vyhod";    // ДТ2
                   // Kotel_Obratka";  // ДТ3

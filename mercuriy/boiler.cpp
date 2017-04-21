@@ -19,6 +19,7 @@ static byte valServo3;
 
 bool kotelActive = false, accumulatorWarm = false, systemHot = false, systemCRIHot = false, systemVeryHot = false, dymVeryCold = false, postplenieGar = false;
 float txaTemp;
+float oxygen;
 float tempCels[4];
 bool sensorOnline[4] = { false, false, false, false };
 
