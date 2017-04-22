@@ -228,46 +228,51 @@ void loop() {
       getKranTA(),
       getZaslonkaVozduha()
     };
-   
-    Signal* s = s1;
-    t = getUTCTime();
-
-    if (periodEvent(&_1_min, t)) {
-      for (byte i = 0; i < 5; i++) {
-        s->m_value.u.m_bool = relay[i];
-        s->m_value.m_time = t;
-        mgt_send(&client, s);
-        s++;
-      }
-    }
-    else {
-      for (byte i = 0; i < 5; i++) {
-        if (s->m_value.u.m_bool != relay[i]) {
-          s->m_value.u.m_bool = relay[i];
-          s->m_value.m_time = t;
-          mgt_send(&client, s);
-        }
-        s++;
-      }
-    }
 
     byte servoPosition[3] = {
       getServo1(),
       getServo2(),
       getServo3()
     };
+   
+    Signal* sRelay = s1;
+    Signal* sServo = s12;
+    t = getUTCTime();
 
-    s = s12;
-    for (byte i = 0; i < 3; i++) {
-      if (s->m_value.u.m_uint8 != servoPosition[i]) {
-        s->m_value.u.m_uint8 = servoPosition[i];
-        s->m_value.m_time = t;
-        mgt_send(&client, s);      
+    if (periodEvent(&_1_min, t)) {
+      for (byte i = 0; i < 5; i++) {
+        sRelay->m_value.u.m_bool = relay[i];
+        sRelay->m_value.m_time = t;
+        mgt_send(&client, sRelay);
+        sRelay++;
       }
-      s++;
+      for (byte i = 0; i < 3; i++) {
+        sServo->m_value.u.m_uint8 = servoPosition[i];
+        sServo->m_value.m_time = t;
+        mgt_send(&client, sServo);      
+        sServo++;
+      }
     }
-  }
-  
+    else {
+      for (byte i = 0; i < 5; i++) {
+        if (sRelay->m_value.u.m_bool != relay[i]) {
+          sRelay->m_value.u.m_bool = relay[i];
+          sRelay->m_value.m_time = t;
+          mgt_send(&client, sRelay);
+        }
+        sRelay++;
+      }
+      for (byte i = 0; i < 3; i++) {
+        if (sServo->m_value.u.m_uint8 != servoPosition[i]) {
+          sServo->m_value.u.m_uint8 = servoPosition[i];
+          sServo->m_value.m_time = t;
+          mgt_send(&client, sServo);      
+        }
+        sServo++;
+      }
+    }
+    
+  } 
 }
 
 // Не блокирующая функция чтения датчиков 
