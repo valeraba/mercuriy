@@ -189,10 +189,10 @@ void loop() {
     Serial.println(txaTemp);
 
     oxygen = (float)analogRead(oxygenPin) * (2.56 / 1024); // пока в вольтах
-
+    
     boiler_work();
     display_draw();
-    
+
     signal_update_double(s6, txaTemp, t);  
     if (sensorOnline[Kotel_Vyhod])
       signal_update_double(s7, tempCels[Kotel_Vyhod], t);

@@ -8,7 +8,7 @@
 #define dymosos 41            // Реле 3 - второе снизу - Дымосос 
 #define nasosKranKotel 39     // Реле 4 - нижнее - НЦ1, КЭ1 
 #define zaslonkaVozduha 47    // Реле 4 нижний блок (нижнее)- МЗ  
-
+#define powerServo 49         // Реле 3 нижний блок питание Сервоприводов
 
 static PWMServo servo1;
 static PWMServo servo2;
@@ -17,6 +17,8 @@ static PWMServo servo3;
 static byte valServo1;
 static byte valServo2;
 static byte valServo3;
+static bool powerServoState = false;
+static unsigned long powerServoTime;
 
 bool kotelActive = false, accumulatorWarm = false, systemHot = false, systemCRIHot = false, systemVeryHot = false, dymVeryCold = false, postplenieGar = false;
 float txaTemp;
@@ -50,6 +52,9 @@ void setServo1(byte aValue) {
   valServo1 = aValue;
   aValue = (byte)((float)(100 - aValue) * 1.7); // от 0 до 170 град.
   servo1.write(aValue);
+  digitalWrite(powerServo, HIGH);
+  powerServoState = true;
+  powerServoTime = millis(); // запомним время включения
 }
 void setServo2(byte aValue) {
   if (systemCRIHot) // если котел перегрет
@@ -59,6 +64,9 @@ void setServo2(byte aValue) {
   valServo2 = aValue;
   aValue = (byte)(100 - aValue); // 0 до 100 град.
   servo2.write(aValue);
+  digitalWrite(powerServo, HIGH);
+  powerServoState = true;
+  powerServoTime = millis(); // запомним время включения
 }
 void setServo3(byte aValue) {
   if (systemCRIHot) // если котел перегрет
@@ -68,6 +76,9 @@ void setServo3(byte aValue) {
   valServo3 = aValue;
   aValue = (byte)((float)(100 - aValue) * 0.9); // от 0 до 90 град.
   servo3.write(aValue);
+  digitalWrite(powerServo, HIGH);
+  powerServoState = true;
+  powerServoTime = millis(); // запомним время включения
 }
 
 static void on(int relay) {
@@ -85,11 +96,13 @@ void boiler_init() {
   pinMode(nasosPotrebiteli, OUTPUT); // Назначаем порт "Выходом"
   pinMode(dymosos, OUTPUT); // Назначаем порт "Выходом"
   pinMode(nasosKranKotel, OUTPUT); // Назначаем порт "Выходом"
+  pinMode(powerServo, OUTPUT); // Назначаем порт "Выходом
   digitalWrite(zaslonkaVozduha, HIGH); // Назначаем первичное состояние ячейки Воздушой заслонки "HIGH" - подача воздуха закрыта
   digitalWrite(kranTA, LOW); // Назначаем первичное состояние ячейки Крана ТА "HIGH"
   digitalWrite(nasosPotrebiteli, HIGH); // Назначаем первичное состояние ячейки Насос потребители "HIGH"
   digitalWrite(dymosos, HIGH); // Назначаем первичное состояние ячейки Дымососа "HIGH"
   digitalWrite(nasosKranKotel, LOW); // Назначаем первичное состояние ячейки Насоса и крана котла "HIGH"
+  digitalWrite(powerServo, LOW); // Назначаем первичное состояние ячейки Насоса и крана котла "LOW"
 
   servo1.attach(11);
   servo2.attach(12);
@@ -101,6 +114,16 @@ void boiler_init() {
 
 // управление котлом
 void boiler_work() {
+  if (powerServoState) { // если питание серв включено
+    unsigned long t = millis();
+    if (powerServoTime >  t) // если произошло переполнение счётчика
+      powerServoTime = t;
+    else if (powerServoTime > (unsigned long)(t + 5000)) { // если с момента последнего включения прошло более 5 секунд
+      digitalWrite(powerServo, LOW); // выключим питание серв
+      powerServoState = false;  
+    }
+  } 
+  
   //-----------------------------
   // Условия определяющие состояние Котла -kotelActive-
   //--------------------------------------
@@ -109,9 +132,9 @@ void boiler_work() {
   if (tempCels[Kotel_Vyhod] < 94 && txaTemp < 108) // если  температура воды менее 94 и
     kotelActive = false;//  температура дыма менее 108 (100) град. С
 
-            //-----------------------------
-            // Условия определяющие состояние ТА при разборе с него тепла
-            //-----------------------------------
+  //-----------------------------
+  // Условия определяющие состояние ТА при разборе с него тепла
+  //-----------------------------------
   if (tempCels[Verh_TA] > 28) // есть ли в аккумуляторе тепло (больше чем 27С)
     accumulatorWarm = true;
   else if (tempCels[Verh_TA] < 27) // есть ли в аккумуляторе холодно (мньше чем 27С)
