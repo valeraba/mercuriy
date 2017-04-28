@@ -22,9 +22,9 @@ byte getServo1();
 byte getServo2();
 byte getServo3();
 
-void setServo1(byte aValue);
-void setServo2(byte aValue);
-void setServo3(byte aValue);
+void setServo1(byte aValue, bool aForce = false);
+void setServo2(byte aValue, bool aForce = false);
+void setServo3(byte aValue, bool aForce = false);
 
 
 //-------------присваеваем тип значения переменной для описывающей состояние Отопительной системы - boolean---------

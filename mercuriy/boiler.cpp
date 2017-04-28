@@ -44,8 +44,8 @@ byte getServo1() { return valServo1; }
 byte getServo2() { return valServo2; }
 byte getServo3() { return valServo3; }
 
-void setServo1(byte aValue) {
-  if (systemCRIHot) // если котел перегрет
+void setServo1(byte aValue, bool aForce = false) {
+  if ((systemCRIHot) && (!aForce)) // если котел перегрет
     return;
   if (aValue > 100)
     aValue = 100;
@@ -56,8 +56,8 @@ void setServo1(byte aValue) {
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
 }
-void setServo2(byte aValue) {
-  if (systemCRIHot) // если котел перегрет
+void setServo2(byte aValue, bool aForce = false) {
+  if ((systemCRIHot) && (!aForce)) // если котел перегрет
     return;
   if (aValue > 100)
     aValue = 100;
@@ -68,8 +68,8 @@ void setServo2(byte aValue) {
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
 }
-void setServo3(byte aValue) {
-  if (systemCRIHot) // если котел перегрет
+void setServo3(byte aValue, bool aForce = false) {
+  if ((systemCRIHot) && (!aForce)) // если котел перегрет
     return;
   if (aValue > 100)
     aValue = 100;
@@ -107,9 +107,9 @@ void boiler_init() {
   servo1.attach(11);
   servo2.attach(12);
   servo3.attach(13);//the pin for the servo control // Указываем к какому пину подключена servo
-  setServo1(0);
-  setServo2(0);
-  setServo3(0);
+  setServo1(0, true);
+  setServo2(0, true);
+  setServo3(0, true);
 }
 
 // управление котлом
@@ -196,9 +196,9 @@ void boiler_work() {
         saveServo1 = valServo1; // сохраним положение всех заслонок
         saveServo2 = valServo2;
         saveServo3 = valServo3;
-        setServo1(0); // закроем все заслоноки
-        setServo2(0);
-        setServo3(0);
+        setServo1(0, true); // закроем все заслоноки
+        setServo2(0, true);
+        setServo3(0, true);
       }
     }
     else {
