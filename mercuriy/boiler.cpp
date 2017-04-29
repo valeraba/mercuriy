@@ -118,7 +118,7 @@ void boiler_work() {
     unsigned long t = millis();
     if (powerServoTime >  t) // если произошло переполнение счётчика
       powerServoTime = t;
-    else if (powerServoTime > (unsigned long)(t + 5000)) { // если с момента последнего включения прошло более 5 секунд
+    else if ((powerServoTime + 5000) > t) { // если с момента последнего включения прошло более 5 секунд
       digitalWrite(powerServo, LOW); // выключим питание серв
       powerServoState = false;  
     }
