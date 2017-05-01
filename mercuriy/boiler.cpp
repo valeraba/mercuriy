@@ -102,7 +102,7 @@ void boiler_init() {
   digitalWrite(nasosPotrebiteli, HIGH); // Назначаем первичное состояние ячейки Насос потребители "HIGH"
   digitalWrite(dymosos, HIGH); // Назначаем первичное состояние ячейки Дымососа "HIGH"
   digitalWrite(nasosKranKotel, LOW); // Назначаем первичное состояние ячейки Насоса и крана котла "HIGH"
-  digitalWrite(powerServo, LOW); // Назначаем первичное состояние ячейки Насоса и крана котла "LOW"
+  digitalWrite(powerServo, LOW); // Назначаем первичное состояние питания Servo "LOW"
 
   servo1.attach(11);
   servo2.attach(12);
