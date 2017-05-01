@@ -10,6 +10,8 @@
 #define zaslonkaVozduha 47    // Реле 4 нижний блок (нижнее)- МЗ  
 #define powerServo 49         // Реле 3 нижний блок питание Сервоприводов
 
+void debugLog(const __FlashStringHelper* aFormat, ...);
+
 static PWMServo servo1;
 static PWMServo servo2;
 static PWMServo servo3;
@@ -55,6 +57,7 @@ void setServo1(byte aValue, bool aForce = false) {
   digitalWrite(powerServo, HIGH);
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
+  debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
 }
 void setServo2(byte aValue, bool aForce = false) {
   if ((systemCRIHot) && (!aForce)) // если котел перегрет
@@ -67,6 +70,7 @@ void setServo2(byte aValue, bool aForce = false) {
   digitalWrite(powerServo, HIGH);
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
+  debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
 }
 void setServo3(byte aValue, bool aForce = false) {
   if ((systemCRIHot) && (!aForce)) // если котел перегрет
@@ -79,6 +83,7 @@ void setServo3(byte aValue, bool aForce = false) {
   digitalWrite(powerServo, HIGH);
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
+  debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
 }
 
 static void on(int relay) {
@@ -118,9 +123,10 @@ void boiler_work() {
     unsigned long t = millis();
     if (powerServoTime >  t) // если произошло переполнение счётчика
       powerServoTime = t;
-    else if ((powerServoTime + 5000) > t) { // если с момента последнего включения прошло более 5 секунд
+    else if (t < (unsigned long)(powerServoTime + 5000)) { // если с момента последнего включения прошло более 5 секунд
       digitalWrite(powerServo, LOW); // выключим питание серв
       powerServoState = false;  
+      debugLog(F("powerServo OFF, t = %lu\n"), t); // TODO для отладки
     }
   } 
   
