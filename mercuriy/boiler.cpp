@@ -46,6 +46,13 @@ byte getServo1() { return valServo1; }
 byte getServo2() { return valServo2; }
 byte getServo3() { return valServo3; }
 
+static void on(int relay) {
+  digitalWrite(relay, LOW);
+}
+static void off(int relay) {
+  digitalWrite(relay, HIGH);
+}
+
 void setServo1(byte aValue, bool aForce = false) {
   if ((systemCRIHot) && (!aForce)) // если котел перегрет
     return;
@@ -54,7 +61,7 @@ void setServo1(byte aValue, bool aForce = false) {
   valServo1 = aValue;
   aValue = (byte)((float)(100 - aValue) * 1.7); // от 0 до 170 град.
   servo1.write(aValue);
-  digitalWrite(powerServo, HIGH);
+  on(powerServo); // включим питание серв
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
   debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
@@ -67,7 +74,7 @@ void setServo2(byte aValue, bool aForce = false) {
   valServo2 = aValue;
   aValue = (byte)(100 - aValue); // 0 до 100 град.
   servo2.write(aValue);
-  digitalWrite(powerServo, HIGH);
+  on(powerServo); // включим питание серв
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
   debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
@@ -80,18 +87,10 @@ void setServo3(byte aValue, bool aForce = false) {
   valServo3 = aValue;
   aValue = (byte)((float)(100 - aValue) * 0.9); // от 0 до 90 град.
   servo3.write(aValue);
-  digitalWrite(powerServo, HIGH);
+  on(powerServo); // включим питание серв
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
   debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
-}
-
-static void on(int relay) {
-  digitalWrite(relay, LOW);
-}
-//----------------------------- 
-static void off(int relay) {
-  digitalWrite(relay, HIGH);
 }
 
 void boiler_init() {
@@ -107,7 +106,7 @@ void boiler_init() {
   digitalWrite(nasosPotrebiteli, HIGH); // Назначаем первичное состояние ячейки Насос потребители "HIGH"
   digitalWrite(dymosos, HIGH); // Назначаем первичное состояние ячейки Дымососа "HIGH"
   digitalWrite(nasosKranKotel, LOW); // Назначаем первичное состояние ячейки Насоса и крана котла "HIGH"
-  digitalWrite(powerServo, LOW); // Назначаем первичное состояние питания Servo "LOW"
+  digitalWrite(powerServo, HIGH); // Назначаем первичное состояние питания Servo "HIGH"
 
   servo1.attach(11);
   servo2.attach(12);
@@ -123,8 +122,8 @@ void boiler_work() {
     unsigned long t = millis();
     if (powerServoTime >  t) // если произошло переполнение счётчика
       powerServoTime = t;
-    else if (t < (unsigned long)(powerServoTime + 5000)) { // если с момента последнего включения прошло более 5 секунд
-      digitalWrite(powerServo, LOW); // выключим питание серв
+    else if (t > (unsigned long)(powerServoTime + 5000)) { // если с момента последнего включения прошло более 5 секунд
+      off(powerServo); // выключим питание серв
       powerServoState = false;  
       debugLog(F("powerServo OFF, t = %lu\n"), t); // TODO для отладки
     }
