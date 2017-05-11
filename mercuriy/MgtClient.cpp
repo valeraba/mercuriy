@@ -80,6 +80,8 @@ Contacts: <bvagile@gmail.com>
 #define l421 va_start
 #define l372 va_arg
 #define l454 va_end
+#define l439 mgt_eventBegin
+#define l509 mgt_eventEnd
 #define l429 mgt_readAns
 #define l406 ErrorCode
 #define l490 mgt_writeAns
@@ -634,27 +636,27 @@ ln.l103.l361){le(la->l129>=la->l6.l385){la->l6.l33(F("\x49\x6e\x63"
 "\x4f\x55\x4e\x54\x5f\x53\x54\x4f\x52\x45\x20\x21\x21\x21\n"));l78(1);
 }l0->lp.l11.ly.l111=la->l129;la->l6.l150[la->l129].l290=ln.l103;la->
 l6.l150[la->l129].l228=0;l130(ln.l103.l365){l2 0:l125=ln.l103.l159;
-l14;l2 1:l125=ln.l103.l159*1000;l14;l2 2:l125=ln.l103.l159*1000*60;
-l14;l2 3:l125=ln.l103.l159*1000*60*60;l14;l2 4:l125=ln.l103.l159*1000
- *60*60*24;l14;l203:l125=0;l14;}la->l6.l150[la->l129].l182=l125;la->
-l129++;}l4 l0->lp.l11.ly.l111=255;lk l0;}l15 l13 l382(ld l1*la,l13*
-l345){l23 l120;le(la->l16==l79){le(la->l6.l48)l298(&la->ln.l100,la->
-l6.l48,la->l6.l280);l4{le(!l261(&la->ln.l100,la->l6.l289,(lb* )la->l6
-.l280)){la->l6.l33(F("\x50\x61\x73\x73\x77\x6f\x72\x64\x20\x69\x73"
-"\x20\x65\x72\x72\x6f\x72\x21\n"));la->l16=l85;lk lz;}}la->l6.l33(F(""
-"\x57\x61\x69\x74\x20\x63\x6f\x6e\x6e\x65\x63\x74\x69\x6f\x6e\x2e\x2e"
-"\x2e\n"));le(!la->l40.l226(la->l6.l317,4502)){la->l6.l33(F("\x4e\x6f"
-"\x20\x63\x6f\x6e\x6e\x65\x63\x74\x69\x6f\x6e\x20\x77\x69\x74\x68\x20"
-"\x74\x68\x65\x20\x73\x65\x72\x76\x69\x63\x65\n"));la->l57=l64()+2000
-;lk lz;}la->l16=l276;}l120=la->l40.l369(la->l26+la->l61,RX_BUF_SIZE-
-la->l61);le(l120<0)lk lt;le(la->l16==l276){le(!la->l40.l384())lk lz;
-la->l6.l33(F("\x57\x61\x69\x74\x20\x61\x75\x74\x68\x6f\x72\x69\x7a"
-"\x61\x74\x69\x6f\x6e\x2e\x2e\x2e\n"));la->l40.l169(&la->ln.l100.l29.
-ln.ly.l48,l69(ld l217));la->l16=l299;}le((l120==0)&&(la->l142)){lk lz
-;} *l345=lz;l130(la->l16){l2 l299:{lb ll[24+l69(ld l128)];ld l128 l121
-;le(l120!=24)lk lt;le(!l313(&la->ln.l100,la->l26,ll))lk lt;l121.l378=
-1;l121.l367=la->l6.l289;l121.l347=0xffffffffL;l121.l44=l161((lb* )&
-l121,offsetof(ld l128,l44),0xffffffff);
+l14;l2 1:l125=(lm)ln.l103.l159*1000;l14;l2 2:l125=(lm)ln.l103.l159*
+1000*60;l14;l2 3:l125=(lm)ln.l103.l159*1000*60*60;l14;l2 4:l125=(lm)ln
+.l103.l159*1000*60*60*24;l14;l203:l125=0;l14;}la->l6.l150[la->l129].
+l182=l125;la->l129++;}l4 l0->lp.l11.ly.l111=255;lk l0;}l15 l13 l382(
+ld l1*la,l13*l345){l23 l120;le(la->l16==l79){le(la->l6.l48)l298(&la->
+ln.l100,la->l6.l48,la->l6.l280);l4{le(!l261(&la->ln.l100,la->l6.l289,
+(lb* )la->l6.l280)){la->l6.l33(F("\x50\x61\x73\x73\x77\x6f\x72\x64"
+"\x20\x69\x73\x20\x65\x72\x72\x6f\x72\x21\n"));la->l16=l85;lk lz;}}la
+->l6.l33(F("\x57\x61\x69\x74\x20\x63\x6f\x6e\x6e\x65\x63\x74\x69\x6f"
+"\x6e\x2e\x2e\x2e\n"));le(!la->l40.l226(la->l6.l317,4502)){la->l6.l33
+(F("\x4e\x6f\x20\x63\x6f\x6e\x6e\x65\x63\x74\x69\x6f\x6e\x20\x77\x69"
+"\x74\x68\x20\x74\x68\x65\x20\x73\x65\x72\x76\x69\x63\x65\n"));la->
+l57=l64()+2000;lk lz;}la->l16=l276;}l120=la->l40.l369(la->l26+la->l61
+,RX_BUF_SIZE-la->l61);le(l120<0)lk lt;le(la->l16==l276){le(!la->l40.
+l384())lk lz;la->l6.l33(F("\x57\x61\x69\x74\x20\x61\x75\x74\x68\x6f"
+"\x72\x69\x7a\x61\x74\x69\x6f\x6e\x2e\x2e\x2e\n"));la->l40.l169(&la->
+ln.l100.l29.ln.ly.l48,l69(ld l217));la->l16=l299;}le((l120==0)&&(la->
+l142)){lk lz;} *l345=lz;l130(la->l16){l2 l299:{lb ll[24+l69(ld l128)]
+;ld l128 l121;le(l120!=24)lk lt;le(!l313(&la->ln.l100,la->l26,ll))lk
+lt;l121.l378=1;l121.l367=la->l6.l289;l121.l347=0xffffffffL;l121.l44=
+l161((lb* )&l121,offsetof(ld l128,l44),0xffffffff);
 #ifdef CRYPTO_ON
 l295(&la->ln.l100,&l121);
 #endif
@@ -747,18 +749,18 @@ l179 l10,l153 l3){lk l401((ld l8* )lj,l10,l3);}l13 l504(ld l105*lj,
 l77*l145,l153 l3){lk l341((ld l8* )lj,l145,l3);}l13 l463(ld l105*lj,
 l153 l3){lk l351((ld l8* )lj,l3);}l13 l511(ld l68*la,ld l452*l143,ld
 l476*l245){((ld l147* )l143)->l33(F("\x4d\x67\x74\x43\x6c\x69\x65\x6e"
-"\x74\x20\x76\x31\x2e\x30\x2c\x20\x32\x30\x31\x37\x2f\x49\x49\x49\x2f"
-"\x31\x35\n"));le(offsetof(ld l68,l5)!=offsetof(ld l1,l5)){l23 l343=
-offsetof(ld l1,l5);((ld l147* )l143)->l33(F("\x49\x6e\x20\x74\x68\x65"
-"\x20\x66\x69\x6c\x65\x20\"\x4d\x67\x74\x43\x6c\x69\x65\x6e\x74\x2e"
-"\x68\"\x20\x69\x6e\x20\x6c\x69\x6e\x65\x20\"\x23\x64\x65\x66\x69\x6e"
-"\x65\x20\x4d\x47\x54\x5f\x43\x4f\x4e\x53\x54\x41\x4e\x54\x20\x25\x69"
-"\"\n\x79\x6f\x75\x20\x6e\x65\x65\x64\x20\x74\x6f\x20\x73\x65\x74\x20"
-"\x74\x68\x65\x20\x6e\x75\x6d\x62\x65\x72\x20\x25\x69\x20\x21\x21\x21"
-"\n"),(l23)(l69(la->l474)),(l23)l343);lk lt;}((ld l147* )l143)->l33(F
-("\x49\x6e\x69\x74\n"));l386((ld l1* )la,(ld l147* )l143,(ld l256* )l245
-);lk lz;}lq l496(ld l68*la){ld l1*lv=(ld l1* )la;le(lv->l16==l85){le(
-lv->l152){lu l31*l156;l31 l260[12+3+1];lv->l6.l33(F("\x52\x65\x73\x74"
+"\x74\x20\x76\x31\x2e\x31\x2c\x20\x32\x30\x31\x37\x2f\x56\x2f\x31\x31"
+"\n"));le(offsetof(ld l68,l5)!=offsetof(ld l1,l5)){l23 l343=offsetof(
+ld l1,l5);((ld l147* )l143)->l33(F("\x49\x6e\x20\x74\x68\x65\x20\x66"
+"\x69\x6c\x65\x20\"\x4d\x67\x74\x43\x6c\x69\x65\x6e\x74\x2e\x68\"\x20"
+"\x69\x6e\x20\x6c\x69\x6e\x65\x20\"\x23\x64\x65\x66\x69\x6e\x65\x20"
+"\x4d\x47\x54\x5f\x43\x4f\x4e\x53\x54\x41\x4e\x54\x20\x25\x69\"\n\x79"
+"\x6f\x75\x20\x6e\x65\x65\x64\x20\x74\x6f\x20\x73\x65\x74\x20\x74\x68"
+"\x65\x20\x6e\x75\x6d\x62\x65\x72\x20\x25\x69\x20\x21\x21\x21\n"),(
+l23)(l69(la->l474)),(l23)l343);lk lt;}((ld l147* )l143)->l33(F("\x49"
+"\x6e\x69\x74\n"));l386((ld l1* )la,(ld l147* )l143,(ld l256* )l245);
+lk lz;}lq l496(ld l68*la){ld l1*lv=(ld l1* )la;le(lv->l16==l85){le(lv
+->l152){lu l31*l156;l31 l260[12+3+1];lv->l6.l33(F("\x52\x65\x73\x74"
 "\x61\x72\x74\x20\x73\x65\x73\x73\x69\x6f\x6e\n"));l273(lv,l260,&l156
 );le(!lv->l40.l226(l156,4503)){lv->l6.l33(F("\x4e\x6f\x20\x63\x6f\x6e"
 "\x6e\x65\x63\x74\x69\x6f\x6e\x20\x77\x69\x74\x68\x20\x74\x68\x65\x20"
