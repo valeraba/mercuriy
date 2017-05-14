@@ -101,7 +101,7 @@ void boiler_init() {
   pinMode(dymosos, OUTPUT); // Назначаем порт "Выходом"
   pinMode(nasosKranKotel, OUTPUT); // Назначаем порт "Выходом"
   pinMode(powerServo, OUTPUT); // Назначаем порт "Выходом
-  digitalWrite(zaslonkaVozduha, LOW); // Назначаем первичное состояние ячейки Воздушой заслонки "HIGH" - подача воздуха закрыта
+  digitalWrite(zaslonkaVozduha, LOW); // Назначаем первичное состояние ячейки Воздушой заслонки "LOW" - заслонка дымохода открыта
   digitalWrite(kranTA, LOW); // Назначаем первичное состояние ячейки Крана ТА "HIGH"
   digitalWrite(nasosPotrebiteli, HIGH); // Назначаем первичное состояние ячейки Насос потребители "HIGH"
   digitalWrite(dymosos, HIGH); // Назначаем первичное состояние ячейки Дымососа "HIGH"
