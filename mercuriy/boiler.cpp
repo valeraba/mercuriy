@@ -3,12 +3,12 @@
 #include <PWMServo.h> 
 
 //------- закрепляю за оборудованием цифровые выходы ардуино---------------
-#define kranTA 45             // Реле 1 - верхнее - КЭ2 
-#define nasosPotrebiteli 43   // Реле 2 - третье снизу НЦ2, НЦ3, НЦ4
-#define dymosos 41            // Реле 3 - второе снизу - Дымосос 
-#define nasosKranKotel 39     // Реле 4 - нижнее - НЦ1, КЭ1 
-#define zaslonkaVozduha 47    // Реле 4 нижний блок (нижнее)- МЗ  
-#define powerServo 49         // Реле 3 нижний блок питание Сервоприводов
+#define kranTA 45             // Реле 1 - верхнее - КЭ2 (кран ТА)
+#define nasosPotrebiteli 43   // Реле 2 - второе сверху НЦ2, НЦ3, НЦ4 (насосы потребителей)
+#define dymosos 41            // Реле 3 - третье сверху - Дымосос 
+#define nasosKranKotel 39     // Реле 4 - нижнее - НЦ1, КЭ1 (насос и кран контура котла)
+#define zaslonkaVozduha 47    // Реле 4 нижний блок (нижнее)- МЗ(привод заслонки дымохода)  
+#define powerServo 49         // Реле 3 нижний блок - питание Сервоприводов
 
 void debugLog(const __FlashStringHelper* aFormat, ...);
 
@@ -101,7 +101,7 @@ void boiler_init() {
   pinMode(dymosos, OUTPUT); // Назначаем порт "Выходом"
   pinMode(nasosKranKotel, OUTPUT); // Назначаем порт "Выходом"
   pinMode(powerServo, OUTPUT); // Назначаем порт "Выходом
-  digitalWrite(zaslonkaVozduha, HIGH); // Назначаем первичное состояние ячейки Воздушой заслонки "HIGH" - подача воздуха закрыта
+  digitalWrite(zaslonkaVozduha, LOW); // Назначаем первичное состояние ячейки Воздушой заслонки "HIGH" - подача воздуха закрыта
   digitalWrite(kranTA, LOW); // Назначаем первичное состояние ячейки Крана ТА "HIGH"
   digitalWrite(nasosPotrebiteli, HIGH); // Назначаем первичное состояние ячейки Насос потребители "HIGH"
   digitalWrite(dymosos, HIGH); // Назначаем первичное состояние ячейки Дымососа "HIGH"
