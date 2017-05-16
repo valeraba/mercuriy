@@ -1,2 +1,2 @@
-signed long device_id = 103111604;
-char* authorization_key = "ioys181rbnykwi6cdkokxrs7zh";
+signed long device_id = 1031***104;
+char* authorization_key = "ioys181rb*****6cdkokxrs7zh";
