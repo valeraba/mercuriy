@@ -7,12 +7,13 @@
 * Лямбда: A0
 */
 
-#define COUNT_SIGNALS 14
+#define COUNT_SIGNALS 24
 #define COUNT_STORE 14
 #include "Types.h"
 #include "MgtClient.h"
 #include "boiler.h"
 #include "display.h"
+#include <EEPROM.h>
 
 extern signed long device_id;
 extern char* authorization_key;
@@ -45,12 +46,13 @@ void debugLog(const __FlashStringHelper* aFormat, ...) {
   va_end(args);
 }
 
+__uint32 crc32(__uint8* aBuf, __uint32 aLen, __uint32 aCrc);
 
 static struct Signal* s1; // nasosKranKotel
 static struct Signal* s2; // nasosPotrebiteli
 static struct Signal* s3; // dymosos
 static struct Signal* s4; // kranTA
-static struct Signal* s5; // zaslonkaVozduha
+static struct Signal* s5; // zaslonkaDymohod
 static struct Signal* s6; // 1_Dymovaya_Truba
 static struct Signal* s7; // 2_Kotel_Vyhod
 static struct Signal* s8; // 3_Kotel_Obratka
@@ -60,13 +62,123 @@ static struct Signal* s11; // oxygen
 static struct Signal* s12; // servo1
 static struct Signal* s13; // servo2
 static struct Signal* s14; // servo3
+static struct Signal* s15; // kranTaJob_on
+static struct Signal* s16; // kranTaJob_off
+static struct Signal* s17; // kranTaSleep_on
+static struct Signal* s18; // kranTaSleep_off
+static struct Signal* s19; // nasosPotrebitel_on
+static struct Signal* s20; // nasosPotrebitel_off
+static struct Signal* s21; // dymosos_on
+static struct Signal* s22; // dymosos_off
+static struct Signal* s23; // systemCRIHot_max
+static struct Signal* s24; // systemCRIHot_min
 
 static struct MgtClient client;
+
+void coefficientsSave() {
+  byte* data = (byte*)(&coefficients);
+  int len = sizeof(Coefficients);
+  for (int i = 0; i < len; i++)
+    EEPROM.update(i, data[i]);
+
+  __uint32 crc = crc32((__uint8*)(&coefficients), len, 0xffffffff);
+  data = (byte*)(&crc32);
+  for (int i = len; i < 4; i++)
+    EEPROM.update(i + len, data[i]);
+}
+
+void coefficientsInit() {
+  byte* data = (byte*)(&coefficients);
+  int len = sizeof(Coefficients);
+  for (int i = 0; i < len; i++)
+    data[i] = EEPROM.read(i);
+
+  __uint32 crc;
+  data = (byte*)(&crc);
+  for (int i = len; i < 4; i++)
+    data[i] = EEPROM.read(i + len);
+
+  if ( crc != crc32((__uint8*)(&coefficients), len, 0xffffffff)) {
+    coefficients.kranTaJob_on = 85;
+    coefficients.kranTaJob_off = 84;
+    coefficients.kranTaSleep_on = 28;
+    coefficients.kranTaSleep_off = 27;
+    coefficients.nasosPotrebitel_on = 65;
+    coefficients.nasosPotrebitel_off = 60;
+    coefficients.dymosos_on = 114;
+    coefficients.dymosos_off = 135;
+    coefficients.systemCRIHot_max = 96;
+    coefficients.systemCRIHot_min = 95;
+  
+    coefficientsSave();    
+  }
+
+  // синхронизируем
+  Signal* s = s15;
+  byte* coefficient = (byte*)(&coefficients);
+  for (byte i = 0; i < 10; i++) {
+    s->m_value.u.m_uint8 = *coefficient;
+    s++;
+    coefficient++; 
+  }
+
+}
+
+void coefficientsWrite(Signal* aSignal, byte aValue) {
+  byte min;
+  byte max;
+  Signal* s;
+  char delta; 
+  if (aSignal == s15) { min = 10; max = 200; s = s16; delta = -1; }
+  else if (aSignal == s16) { min = 10; max = 200; s = s15; delta = 1; }
+  else if (aSignal == s17) { min = 10; max = 200; s = s18; delta = -1; }
+  else if (aSignal == s18) { min = 10; max = 200; s = s17; delta = 1; }
+  else if (aSignal == s19) { min = 10; max = 200; s = s20; delta = -1; }
+  else if (aSignal == s20) { min = 10; max = 200; s = s19; delta = 1; }
+  else if (aSignal == s21) { min = 10; max = 200; s = s22; delta = 1; }
+  else if (aSignal == s22) { min = 10; max = 200; s = s21; delta = -1; }
+  else if (aSignal == s23) { min = 10; max = 200; s = s24; delta = -1; }
+  else if (aSignal == s24) { min = 10; max = 200; s = s23; delta = 1; }
+
+  if ((aValue < min) || (aValue > max)) {
+    aSignal->m_value.u.m_uint8 = aValue;
+    mgt_writeAns(&client, aSignal, erWriteFailed);
+    return;   
+  }
+
+  TimeStamp t = getUTCTime();
+
+  if (delta > 0) { // если парный коэффициент должен быть больше
+    if (s->m_value.u.m_uint8 < (aSignal->m_value.u.m_uint8 + delta)) {
+      s->m_value.u.m_uint8 = aSignal->m_value.u.m_uint8 + delta;
+      signal_updateTime(s, t);
+      mgt_send(&client, s);
+    }
+  }
+  else { // если парный коэффициент должен быть меньше
+    if (s->m_value.u.m_uint8 > (aSignal->m_value.u.m_uint8 + delta)) {
+      s->m_value.u.m_uint8 = aSignal->m_value.u.m_uint8 + delta;
+      signal_updateTime(s, t);
+      mgt_send(&client, s);
+    }
+  }
+    
+  // синхронизируем
+  s = s15;
+  byte* coefficient = (byte*)(&coefficients);
+  for (byte i = 0; i < 10; i++) {
+    *coefficient = s->m_value.u.m_uint8;
+    s++;
+    coefficient++; 
+  }
+
+  coefficientsSave(); 
+}
+
 
 
 // asynchronous writes without confirmation for "servo1"
 static void writeAsync_s12(__uint8 aValue) {
-  // TODO insert your code in the handler
   setServo1(aValue);
   signal_update_int(s12, getServo1(), getUTCTime());
   mgt_send(&client, s12);
@@ -75,7 +187,6 @@ static void writeAsync_s12(__uint8 aValue) {
 
 // asynchronous writes without confirmation for "servo2"
 static void writeAsync_s13(__uint8 aValue) {
-  // TODO insert your code in the handler
   setServo2(aValue);
   signal_update_int(s13, getServo2(), getUTCTime());
   mgt_send(&client, s13);
@@ -84,11 +195,60 @@ static void writeAsync_s13(__uint8 aValue) {
 
 // asynchronous writes without confirmation for "servo3"
 static void writeAsync_s14(__uint8 aValue) {
-  // TODO insert your code in the handler
   setServo3(aValue);
   signal_update_int(s14, getServo3(), getUTCTime());
   mgt_send(&client, s14);
   debugLog(F("write s14: %i\n"), aValue);
+}
+
+// write with confirmation for "kranTaJob_on"
+static void write_s15(__uint8 aValue) {
+  coefficientsWrite(s15, aValue);
+}
+
+// write with confirmation for "kranTaJob_off"
+static void write_s16(__uint8 aValue) {
+  coefficientsWrite(s16, aValue);
+}
+
+// write with confirmation for "kranTaSleep_on"
+static void write_s17(__uint8 aValue) {
+  coefficientsWrite(s17, aValue);
+}
+
+// write with confirmation for "kranTaSleep_off"
+static void write_s18(__uint8 aValue) {
+  coefficientsWrite(s18, aValue);
+}
+
+// write with confirmation for "nasosPotrebitel_on"
+static void write_s19(__uint8 aValue) {
+  coefficientsWrite(s19, aValue);
+}
+
+// write with confirmation for "nasosPotrebitel_off"
+static void write_s20(__uint8 aValue) {
+  coefficientsWrite(s20, aValue);
+}
+
+// write with confirmation for "dymosos_on"
+static void write_s21(__uint8 aValue) {
+  coefficientsWrite(s21, aValue);
+}
+
+// write with confirmation for "dymosos_off"
+static void write_s22(__uint8 aValue) {
+  coefficientsWrite(s22, aValue);
+}
+
+// write with confirmation for "systemCRIHot_max"
+static void write_s23(__uint8 aValue) {
+  coefficientsWrite(s23, aValue);
+}
+
+// write with confirmation for "systemCRIHot_min"
+static void write_s24(__uint8 aValue) {
+  coefficientsWrite(s24, aValue);
 }
 
 static void handler(enum OpCode aOpCode, struct Signal* aSignal, struct SignalValue* aWriteValue) {
@@ -98,6 +258,26 @@ static void handler(enum OpCode aOpCode, struct Signal* aSignal, struct SignalVa
     mgt_readAns(&client, aSignal, erOk);
     break;
   case opWrite:
+    if (aSignal == s15)
+      write_s15(aWriteValue->u.m_uint8);
+    else if (aSignal == s16)
+      write_s16(aWriteValue->u.m_uint8);
+    else if (aSignal == s17)
+      write_s17(aWriteValue->u.m_uint8);
+    else if (aSignal == s18)
+      write_s18(aWriteValue->u.m_uint8);
+    else if (aSignal == s19)
+      write_s19(aWriteValue->u.m_uint8);
+    else if (aSignal == s20)
+      write_s20(aWriteValue->u.m_uint8);
+    else if (aSignal == s21)
+      write_s21(aWriteValue->u.m_uint8);
+    else if (aSignal == s22)
+      write_s22(aWriteValue->u.m_uint8);
+    else if (aSignal == s23)
+      write_s23(aWriteValue->u.m_uint8);
+    else if (aSignal == s24)
+      write_s24(aWriteValue->u.m_uint8);
     break;
   case opWriteAsync:
     if (aSignal == s12)
@@ -142,7 +322,7 @@ void setup() {
   s2 = mgt_createSignal(&client, "nasosPotrebiteli", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s3 = mgt_createSignal(&client, "dymosos", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s4 = mgt_createSignal(&client, "kranTA", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
-  s5 = mgt_createSignal(&client, "zaslonkaVozduha", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
+  s5 = mgt_createSignal(&client, "zaslonkaDymohod", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s6 = mgt_createSignal(&client, "1_Dymovaya_Truba", tpFloat, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_AVERAGE | STORE_UNIT_SEC | 15, 0);
   s7 = mgt_createSignal(&client, "2_Kotel_Vyhod", tpFloat, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_AVERAGE | STORE_UNIT_SEC | 15, 0);
   s8 = mgt_createSignal(&client, "3_Kotel_Obratka", tpFloat, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_AVERAGE | STORE_UNIT_SEC | 15, 0);
@@ -152,6 +332,18 @@ void setup() {
   s12 = mgt_createSignal(&client, "servo1", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_ASYNC_WRITE, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s13 = mgt_createSignal(&client, "servo2", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_ASYNC_WRITE, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s14 = mgt_createSignal(&client, "servo3", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_ASYNC_WRITE, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
+  s15 = mgt_createSignal(&client, "kranTaJob_on", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s16 = mgt_createSignal(&client, "kranTaJob_off", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s17 = mgt_createSignal(&client, "kranTaSleep_on", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s18 = mgt_createSignal(&client, "kranTaSleep_off", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s19 = mgt_createSignal(&client, "nasosPotrebitel_on", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s20 = mgt_createSignal(&client, "nasosPotrebitel_off", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s21 = mgt_createSignal(&client, "dymosos_on", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s22 = mgt_createSignal(&client, "dymosos_off", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s23 = mgt_createSignal(&client, "systemCRIHot_max", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s24 = mgt_createSignal(&client, "systemCRIHot_min", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+
+  coefficientsInit();
 
   mgt_start(&client);
 }
@@ -226,7 +418,7 @@ void loop() {
       getNasosPotrebiteli(),
       getDymosos(),
       getKranTA(),
-      getZaslonkaVozduha()
+      getZaslonkaDymohod()
     };
 
     byte servoPosition[3] = {

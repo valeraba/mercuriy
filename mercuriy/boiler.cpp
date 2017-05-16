@@ -7,10 +7,12 @@
 #define nasosPotrebiteli 43   // Реле 2 - второе сверху НЦ2, НЦ3, НЦ4 (насосы потребителей)
 #define dymosos 41            // Реле 3 - третье сверху - Дымосос 
 #define nasosKranKotel 39     // Реле 4 - нижнее - НЦ1, КЭ1 (насос и кран контура котла)
-#define zaslonkaVozduha 47    // Реле 4 нижний блок (нижнее)- МЗ(привод заслонки дымохода)  
+#define zaslonkaDymohod 47    // Реле 4 нижний блок (нижнее)- МЗ(привод заслонки дымохода)  
 #define powerServo 49         // Реле 3 нижний блок - питание Сервоприводов
 
 void debugLog(const __FlashStringHelper* aFormat, ...);
+
+Coefficients coefficients;
 
 static PWMServo servo1;
 static PWMServo servo2;
@@ -22,25 +24,26 @@ static byte valServo3;
 static bool powerServoState = false;
 static unsigned long powerServoTime;
 
-bool kotelActive = false, accumulatorWarm = false, systemHot = false, systemCRIHot = false, systemVeryHot = false, dymVeryCold = false, postplenieGar = false;
+bool kotelActive = false, systemCRIHot = false, dymVeryCold = false, postplenieGar = false;
 float txaTemp;
 float oxygen;
 float tempCels[4];
 bool sensorOnline[4] = { false, false, false, false };
 
 
+
 bool getNasosKranKotel() { return !digitalRead(nasosKranKotel); }
 bool getNasosPotrebiteli() { return !digitalRead(nasosPotrebiteli); }
 bool getDymosos() { return !digitalRead(dymosos); }
 bool getKranTA() { return !digitalRead(kranTA); }
-bool getZaslonkaVozduha() { return !digitalRead(zaslonkaVozduha); }
+bool getZaslonkaDymohod() { return !digitalRead(zaslonkaDymohod); }
 
 //----функции для удалённого управления, наверное это не нужно?-------------
 bool setNasosKranKotel(bool aState) { digitalWrite(nasosKranKotel, !aState); return true; }
 bool setNasosPotrebiteli(bool aState) { digitalWrite(nasosPotrebiteli, !aState); return true; }
 bool setDymosos(bool aState) { digitalWrite(dymosos, !aState); return true; }
 bool setKranTA(bool aState) { digitalWrite(kranTA, !aState); return true; }
-bool setZaslonkaVozduha(bool aState) { digitalWrite(zaslonkaVozduha, !aState); return true; }
+bool setZaslonkaDymohod(bool aState) { digitalWrite(zaslonkaDymohod, !aState); return true; }
 
 byte getServo1() { return valServo1; }
 byte getServo2() { return valServo2; }
@@ -95,13 +98,13 @@ void setServo3(byte aValue, bool aForce = false) {
 
 void boiler_init() {
   //---------Определение первоначальных состояний цифровым выходам--------
-  pinMode(zaslonkaVozduha, OUTPUT); // Назначаем порт "Выходом"
+  pinMode(zaslonkaDymohod, OUTPUT); // Назначаем порт "Выходом"
   pinMode(kranTA, OUTPUT); // Назначаем порт "Выходом"
   pinMode(nasosPotrebiteli, OUTPUT); // Назначаем порт "Выходом"
   pinMode(dymosos, OUTPUT); // Назначаем порт "Выходом"
   pinMode(nasosKranKotel, OUTPUT); // Назначаем порт "Выходом"
   pinMode(powerServo, OUTPUT); // Назначаем порт "Выходом
-  digitalWrite(zaslonkaVozduha, LOW); // Назначаем первичное состояние ячейки Воздушой заслонки "LOW" - заслонка дымохода открыта
+  digitalWrite(zaslonkaDymohod, LOW); // Назначаем первичное состояние ячейки Воздушой заслонки "LOW" - заслонка дымохода открыта
   digitalWrite(kranTA, LOW); // Назначаем первичное состояние ячейки Крана ТА "HIGH"
   digitalWrite(nasosPotrebiteli, HIGH); // Назначаем первичное состояние ячейки Насос потребители "HIGH"
   digitalWrite(dymosos, HIGH); // Назначаем первичное состояние ячейки Дымососа "HIGH"
@@ -137,37 +140,6 @@ void boiler_work() {
   if (tempCels[Kotel_Vyhod] < 94 && txaTemp < 108) // если  температура воды менее 94 и
     kotelActive = false;//  температура дыма менее 108 (100) град. С
 
-  //-----------------------------
-  // Условия определяющие состояние ТА при разборе с него тепла
-  //-----------------------------------
-  if (tempCels[Verh_TA] > 28) // есть ли в аккумуляторе тепло (больше чем 27С)
-    accumulatorWarm = true;
-  else if (tempCels[Verh_TA] < 27) // есть ли в аккумуляторе холодно (мньше чем 27С)
-    accumulatorWarm = false;
-
-  //-----------------------------
-  // Условие определяющее состояние Заслонки Дыма при перегреве котла
-  //-----------------------------
-  if (tempCels[Kotel_Vyhod] > 96) // если котел нагрет, более 96 градусов
-    systemCRIHot = true;
-  else if (tempCels[Kotel_Vyhod] < 95) // если котел нагрет, менее 95 градусов
-    systemCRIHot = false;
-
-  //-----------------------------
-  // Условие определяющее подпитку Котла водой из ТА
-  //-----------------------------
-  if (tempCels[Kotel_Vyhod] > 85) // если температура котла более 85 градусов
-    systemVeryHot = true;
-  else if (tempCels[Kotel_Vyhod] < 84) // если температура котла меньше 84 градусов
-    systemVeryHot = false;
-
-  //-----------------------------
-  // Условие определяющее включение циркуляционного насаса потребителей
-  //-----------------------------
-  if (tempCels[Kotel_Vyhod] > 65) // если температура котла больше 70 градусов
-    systemHot = true;
-  else if (tempCels[Kotel_Vyhod] < 60) // если температура котла меньше 60 градусов
-    systemHot = false;
 
   //---------------------
   // Порядок работы СО в период работы котла (kotelActive)
@@ -175,15 +147,25 @@ void boiler_work() {
   if (kotelActive) {
     on(nasosKranKotel);
 
-    // Условие включения насоса потребителей 
+    // Условие определяющее включение циркуляционного насаса потребителей 
+    static bool systemHot = false;
+    if (tempCels[Kotel_Vyhod] > coefficients.nasosPotrebitel_on) // если температура котла больше чем (по умолчанию 65 градусов)
+      systemHot = true;
+    else if (tempCels[Kotel_Vyhod] < coefficients.nasosPotrebitel_off) // если температура котла меньше чем (по умолчанию 60 градусов)
+      systemHot = false;
     if (systemHot)
-      on(nasosPotrebiteli); // при достижении 65 град включает насос потребителей
+      on(nasosPotrebiteli); // включает насос потребителей
     else
       off(nasosPotrebiteli);
 
-    // Условие открытия кран ТА по перегреву
+    // Условие определяющее подпитку Котла водой из ТА
+    static bool systemVeryHot = false;
+    if (tempCels[Kotel_Vyhod] > coefficients.kranTaJob_on) // если температура котла больше чем (по умолчанию 85 градусов)
+      systemVeryHot = true;
+    else if (tempCels[Kotel_Vyhod] < coefficients.kranTaJob_off) // если температура котла меньше чем (по умолчанию 84 градуса)
+      systemVeryHot = false;
     if (systemVeryHot)
-      on(kranTA); // в случае нагрева котла до 85 градусов открыть кран подачи в ТА
+      on(kranTA); // в случае нагрева котла открыть кран подачи в ТА
     else
       off(kranTA);
 
@@ -192,9 +174,13 @@ void boiler_work() {
     static byte saveServo3;
     static bool prevState = false;
 
-    // Условие работы звслонки дыма и дымососа при перегреве котла выше 95 гр.
-    if (systemCRIHot) { // Если котел перегрет более 95 градусов
-      on(zaslonkaVozduha);// Закроет заслонку дым трубы, остановить подачу воздуха в котел
+    // Условие работы заслонки дыма и дымососа при перегреве котла
+    if (tempCels[Kotel_Vyhod] > coefficients.systemCRIHot_max) // если котел перегрет больше чем (по умолчанию 96 градусов)
+      systemCRIHot = true;
+    else if (tempCels[Kotel_Vyhod] < coefficients.systemCRIHot_min) // если котел не перегрет меньше чем (по умолчанию 95 градусов)
+     systemCRIHot = false;
+    if (systemCRIHot) { // если котел перегрет
+      on(zaslonkaDymohod); // закроет заслонку дым трубы, остановить подачу воздуха в котел
       off(dymosos);// остановит мотор дымососа;
 
       if (!prevState) { // если произошло изменение состояния
@@ -208,13 +194,13 @@ void boiler_work() {
     }
     else {
       // Условия работы дымососа
-      if (txaTemp < 114) { // Температура дыма меньше 114 градусов
-        on(zaslonkaVozduha);// Закроет заслонку дым трубы, 
+      if (txaTemp < coefficients.dymosos_on) { // Температура дыма меньше чем (по умолчанию 114 градусов)
+        on(zaslonkaDymohod);// Закроет заслонку дым трубы, 
         on(dymosos);// включит мотор дымососа;  
       }
-      else if (txaTemp > 135) { // Температура дыма больше 135 градусов
+      else if (txaTemp > coefficients.dymosos_off) { // Температура дыма больше чем (по умолчанию 135 градусов)
         off(dymosos);// остановит мотор дымососа
-        off(zaslonkaVozduha);// Откроет заслонку дым. трубы
+        off(zaslonkaDymohod);// Откроет заслонку дым. трубы
       }
 
       if (prevState) { // если произошло изменение состояния
@@ -230,8 +216,15 @@ void boiler_work() {
   //--------------------------
   else { // Состояние оборудования в период когда котел "спит"
     off(nasosKranKotel); // Остановлен насос котла, закрыт кран котла
-    on(zaslonkaVozduha); // остановить подачу воздуха в котел
+    on(zaslonkaDymohod); // остановить подачу воздуха в котел
     off(dymosos);
+
+    // Условия определяющие состояние ТА при разборе с него тепла (для спящего режима)
+    static bool accumulatorWarm = false;
+    if (tempCels[Verh_TA] > coefficients.kranTaSleep_on) // есть ли в аккумуляторе тепло больше чем (по умолчанию 28С)
+      accumulatorWarm = true;
+    else if (tempCels[Verh_TA] < coefficients.kranTaSleep_off) // есть ли в аккумуляторе холодно меньше чем (по умолчанию 27С)
+      accumulatorWarm = false;
     if (accumulatorWarm) { // если в аккумуляторе есть тепло
       on(kranTA); // обогрев  
       on(nasosPotrebiteli);  // ТА
