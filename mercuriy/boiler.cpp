@@ -24,7 +24,7 @@ static byte valServo3;
 static bool powerServoState = false;
 static unsigned long powerServoTime;
 
-bool kotelActive = false, systemCRIHot = false, dymVeryCold = false, postplenieGar = false;
+bool kotelActive = false, systemCRIHot = false;
 float txaTemp;
 float oxygen;
 float tempCels[4];

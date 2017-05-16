@@ -129,24 +129,27 @@ void coefficientsWrite(Signal* aSignal, byte aValue) {
   byte max;
   Signal* s;
   char delta; 
-  if (aSignal == s15) { min = 10; max = 200; s = s16; delta = -1; }
-  else if (aSignal == s16) { min = 10; max = 200; s = s15; delta = 1; }
-  else if (aSignal == s17) { min = 10; max = 200; s = s18; delta = -1; }
-  else if (aSignal == s18) { min = 10; max = 200; s = s17; delta = 1; }
-  else if (aSignal == s19) { min = 10; max = 200; s = s20; delta = -1; }
-  else if (aSignal == s20) { min = 10; max = 200; s = s19; delta = 1; }
-  else if (aSignal == s21) { min = 10; max = 200; s = s22; delta = 1; }
-  else if (aSignal == s22) { min = 10; max = 200; s = s21; delta = -1; }
-  else if (aSignal == s23) { min = 10; max = 200; s = s24; delta = -1; }
-  else if (aSignal == s24) { min = 10; max = 200; s = s23; delta = 1; }
+  if (aSignal == s15) { min = 70; max = 90; s = s16; delta = -1; }
+  else if (aSignal == s16) { min = 69; max = 89; s = s15; delta = 1; }
+  else if (aSignal == s17) { min = 23; max = 35; s = s18; delta = -1; }
+  else if (aSignal == s18) { min = 22; max = 34; s = s17; delta = 1; }
+  else if (aSignal == s19) { min = 55; max = 75; s = s20; delta = -5; }
+  else if (aSignal == s20) { min = 50; max = 70; s = s19; delta = 5; }
+  else if (aSignal == s21) { min = 100; max = 120; s = s22; delta = 20; }
+  else if (aSignal == s22) { min = 120; max = 140; s = s21; delta = -20; }
+  else if (aSignal == s23) { min = 90; max = 97; s = s24; delta = -1; }
+  else if (aSignal == s24) { min = 89; max = 96; s = s23; delta = 1; }
 
   if ((aValue < min) || (aValue > max)) {
-    aSignal->m_value.u.m_uint8 = aValue;
     mgt_writeAns(&client, aSignal, erWriteFailed);
     return;   
   }
 
   TimeStamp t = getUTCTime();
+
+  signal_update_int(aSignal, aValue, t);
+  mgt_writeAns(&client, aSignal, erOk);
+
 
   if (delta > 0) { // если парный коэффициент должен быть больше
     if (s->m_value.u.m_uint8 < (aSignal->m_value.u.m_uint8 + delta)) {
