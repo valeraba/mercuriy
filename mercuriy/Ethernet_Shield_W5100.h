@@ -8,11 +8,9 @@ Contacts: <bvagile@gmail.com>
 #include <Ethernet.h>
 
 TimeStamp shiftTime;
+extern signed long device_id;
 
-
-byte mac[] = { 0xDE, 0xAD, 0xBE, 0xFE, 0xEF, 0xED };
-//char server[] = "www.samde.ru";
-//char server[] = "192.168.0.54";
+byte mac[] = { 0xDE, 0xAD, (byte)(device_id >> 3), (byte)(device_id >> 2), (byte)(device_id >> 1), (byte)(device_id >> 0) };
 IPAddress ip(192,168,0,177);
 EthernetClient socket;
 
