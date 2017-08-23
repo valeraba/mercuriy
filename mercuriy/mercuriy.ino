@@ -519,7 +519,7 @@ bool run_ds(TimeStamp time)
   // запустим процесс измерения
   for (int i = 0; i < 4; i++) {
     if (!isFind[i]) { // если датчик ещё не найден
-      if (!ds[i].search(rom[i])) {
+      if (ds[i].search(rom[i])) {
         if (OneWire::crc8(rom[i], 7) != rom[i][7]) // если crc не сходится
           continue; // не найден
         isFind[i] = true; // датчик обнаружен
