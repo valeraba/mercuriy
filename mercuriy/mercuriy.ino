@@ -374,14 +374,16 @@ void loop() {
 
   if (isNewValue) { // если вычитаны новые значения
     //---- Начало моего рабочего кода (мой loop())--
-    temperaturePrint(0);
-    temperaturePrint(1);
-    temperaturePrint(2);
-    temperaturePrint(3);
+    //temperaturePrint(0);
+    //temperaturePrint(1);
+    //temperaturePrint(2);
+    //temperaturePrint(3);
 
-    txaTemp = thermocouple.readCelsius() + 0.5;  // 0.5 поправочное значение
-    Serial.print("Smoke temp:");
-    Serial.println(txaTemp);
+    double temp = thermocouple.readCelsius(); // довольно часто возращается NAN
+    if (temp != NAN)
+      txaTemp = temp + 0.5;  // 0.5 поправочное значение
+    //Serial.print("Smoke temp:");
+    //Serial.println(txaTemp);
 
     oxygen = (float)analogRead(oxygenPin) * (2.56 / 1024); // пока в вольтах
     
@@ -534,7 +536,7 @@ bool run_ds(TimeStamp time)
 }
  
 //----------------------------- 
-void temperaturePrint(int sensorNumber) {
+/*void temperaturePrint(int sensorNumber) {
   if (sensorOnline[sensorNumber]) {  
     Serial.print("Temp ");
     Serial.print(sensorNumber);
@@ -549,5 +551,5 @@ void temperaturePrint(int sensorNumber) {
     delay (200); // 200
    }
   return;
- }  
+ }*/  
 
