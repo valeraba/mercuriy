@@ -371,7 +371,8 @@ struct Period _1_min = { 1L * 60 * 1000, 0 };
 void loop() {
   TimeStamp t = getUTCTime();
   bool isNewValue = run_ds(t); // пробуем считать значение датчиков
-
+  double txa;
+  
   if (isNewValue) { // если вычитаны новые значения
     //---- Начало моего рабочего кода (мой loop())--
     //temperaturePrint(0);
@@ -379,9 +380,9 @@ void loop() {
     //temperaturePrint(2);
     //temperaturePrint(3);
 
-    double temp = thermocouple.readCelsius(); // довольно часто возращается NAN
-    if (temp != NAN)
-      txaTemp = temp + 0.5;  // 0.5 поправочное значение
+    txa = thermocouple.readCelsius(); // довольно часто возращается NAN
+    if (txa != NAN)
+      txaTemp = txa + 0.5;  // 0.5 поправочное значение
     //Serial.print("Smoke temp:");
     //Serial.println(txaTemp);
 
@@ -390,7 +391,8 @@ void loop() {
     boiler_work();
     display_draw();
 
-    signal_update_double(s6, txaTemp, t);  
+    if (txa != NAN)
+      signal_update_double(s6, txaTemp, t);  
     if (sensorOnline[Kotel_Vyhod])
       signal_update_double(s7, tempCels[Kotel_Vyhod], t);
     if (sensorOnline[Kotel_Obratka])
@@ -404,8 +406,9 @@ void loop() {
 
   if (mgt_run(&client) == stConnected) {
     
-    if (isNewValue) { // если вычитаны новые значения     
-      mgt_send(&client, s6);
+    if (isNewValue) { // если вычитаны новые значения
+      if (txa != NAN)     
+        mgt_send(&client, s6);
       if (sensorOnline[Kotel_Vyhod])
         mgt_send(&client, s7);
       if (sensorOnline[Kotel_Obratka])
@@ -536,7 +539,7 @@ bool run_ds(TimeStamp time)
 }
  
 //----------------------------- 
-/*void temperaturePrint(int sensorNumber) {
+void temperaturePrint(int sensorNumber) {
   if (sensorOnline[sensorNumber]) {  
     Serial.print("Temp ");
     Serial.print(sensorNumber);
@@ -551,5 +554,5 @@ bool run_ds(TimeStamp time)
     delay (200); // 200
    }
   return;
- }*/  
+ } 
 
