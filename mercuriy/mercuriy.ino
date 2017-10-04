@@ -381,7 +381,7 @@ void loop() {
     //temperaturePrint(3);
 
     txa = thermocouple.readCelsius(); // довольно часто возращается NAN
-    if (txa != NAN)
+    if (txa == txa) // если не NAN 
       txaTemp = txa + 0.5;  // 0.5 поправочное значение
     //Serial.print("Smoke temp:");
     //Serial.println(txaTemp);
@@ -391,7 +391,7 @@ void loop() {
     boiler_work();
     display_draw();
 
-    if (txa != NAN)
+    if (txa == txa) // если не NAN 
       signal_update_double(s6, txaTemp, t);  
     if (sensorOnline[Kotel_Vyhod])
       signal_update_double(s7, tempCels[Kotel_Vyhod], t);
@@ -407,7 +407,7 @@ void loop() {
   if (mgt_run(&client) == stConnected) {
     
     if (isNewValue) { // если вычитаны новые значения
-      if (txa != NAN)     
+      if (txa == txa) // если не NAN      
         mgt_send(&client, s6);
       if (sensorOnline[Kotel_Vyhod])
         mgt_send(&client, s7);
