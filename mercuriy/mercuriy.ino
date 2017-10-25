@@ -514,7 +514,7 @@ bool run_ds(TimeStamp time)
         divider = 16;
       else
         Serial.print("Sensor is error type.");
-      float temp = (ram[1] << 8) + ram[0];
+      float temp = (__int16)((ram[1] << 8) | ram[0]);
       tempCels[i] = temp / divider;
     }
     else
