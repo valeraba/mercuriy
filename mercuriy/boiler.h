@@ -46,6 +46,8 @@ void setServo1(byte aValue, bool aForce = false);
 void setServo2(byte aValue, bool aForce = false);
 void setServo3(byte aValue, bool aForce = false);
 
+bool getIgnition();
+bool setIgnition(bool aValue);
 
 //----датчики--------------
 extern float txaTemp; // Dymovaya_Truba"; // ТХА  

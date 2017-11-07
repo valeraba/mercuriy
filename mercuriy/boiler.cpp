@@ -30,6 +30,7 @@ float oxygen;
 float tempCels[4];
 bool sensorOnline[4] = { false, false, false, false };
 
+static bool ignition = false; 
 
 
 bool getNasosKranKotel() { return !digitalRead(nasosKranKotel); }
@@ -96,6 +97,18 @@ void setServo3(byte aValue, bool aForce = false) {
   debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
 }
 
+bool getIgnition() {
+  return ignition;
+}
+bool setIgnition(bool aValue) {
+  if (txaTemp > coefficients.dymosos_off) // Температура дыма больше чем (по умолчанию 135 градусов)
+    return false;
+  if (tempCels[Kotel_Vyhod] > coefficients.systemCRIHot_max) // если котел перегрет больше чем (по умолчанию 96 градусов)
+    return false;
+  ignition = aValue;
+  return true;
+}
+
 void boiler_init() {
   //---------Определение первоначальных состояний цифровым выходам--------
   pinMode(zaslonkaDymohod, OUTPUT); // Назначаем порт "Выходом"
@@ -144,7 +157,7 @@ void boiler_work() {
   //---------------------
   // Порядок работы СО в период работы котла (kotelActive)
   //----------------------
-  if (kotelActive) {
+  if (kotelActive || ignition) {
     on(nasosKranKotel);
 
     // Условие определяющее включение циркуляционного насаса потребителей 
@@ -180,6 +193,7 @@ void boiler_work() {
     else if (tempCels[Kotel_Vyhod] < coefficients.systemCRIHot_min) // если котел не перегрет меньше чем (по умолчанию 95 градусов)
      systemCRIHot = false;
     if (systemCRIHot) { // если котел перегрет
+      ignition = false; // переход в автоматический режим
       on(zaslonkaDymohod); // закроет заслонку дым трубы, остановить подачу воздуха в котел
       off(dymosos);// остановит мотор дымососа;
 
@@ -196,8 +210,10 @@ void boiler_work() {
       //-----Условия работы дымососа----------
       if (txaTemp < coefficients.dymosos_on) // Температура дыма меньше чем (по умолчанию 114 градусов)
         on(dymosos);// включит мотор дымососа;  
-      else if (txaTemp > coefficients.dymosos_off) // Температура дыма больше чем (по умолчанию 135 градусов)
+      else if (txaTemp > coefficients.dymosos_off) { // Температура дыма больше чем (по умолчанию 135 градусов)
+        ignition = false; // переход в автоматический режим
         off(dymosos);// остановит мотор дымососа
+      }
 
       // если мотор дымососа включён, то закроем заслонку дымовой трубы
       // если мотор дымососа выключен, то откроем заслонку дымовой трубы

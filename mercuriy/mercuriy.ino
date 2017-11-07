@@ -7,7 +7,7 @@
 * Лямбда: A0
 */
 
-#define COUNT_SIGNALS 24
+#define COUNT_SIGNALS 25
 #define COUNT_STORE 14
 #include "Types.h"
 #include "MgtClient.h"
@@ -72,6 +72,7 @@ static struct Signal* s21; // dymosos_on
 static struct Signal* s22; // dymosos_off
 static struct Signal* s23; // systemCRIHot_max
 static struct Signal* s24; // systemCRIHot_min
+static struct Signal* s25; // ignition
 
 static struct MgtClient client;
 
@@ -254,6 +255,16 @@ static void write_s24(__uint8 aValue) {
   coefficientsWrite(s24, aValue);
 }
 
+// write with confirmation for "ignition"
+static void write_s25(bool aValue) {
+  if (setIgnition(aValue)) {
+    signal_update_int(s25, aValue, getUTCTime());
+    mgt_writeAns(&client, s25, erOk);
+  }
+  else
+    mgt_writeAns(&client, s25, erWriteFailed);
+}
+
 static void handler(enum OpCode aOpCode, struct Signal* aSignal, struct SignalValue* aWriteValue) {
   switch (aOpCode) {
   case opRead:
@@ -281,6 +292,8 @@ static void handler(enum OpCode aOpCode, struct Signal* aSignal, struct SignalVa
       write_s23(aWriteValue->u.m_uint8);
     else if (aSignal == s24)
       write_s24(aWriteValue->u.m_uint8);
+    else if (aSignal == s25)
+      write_s25(aWriteValue->u.m_bool);
     break;
   case opWriteAsync:
     if (aSignal == s12)
@@ -345,6 +358,7 @@ void setup() {
   s22 = mgt_createSignal(&client, "dymosos_off", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
   s23 = mgt_createSignal(&client, "systemCRIHot_max", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
   s24 = mgt_createSignal(&client, "systemCRIHot_min", tpUInt8, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
+  s25 = mgt_createSignal(&client, "ignition", tpBool, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_OFF, 0);
 
   coefficientsInit();
 
@@ -470,6 +484,13 @@ void loop() {
         }
         sServo++;
       }
+    }
+
+    bool ignition = getIgnition();
+    if (ignition != s25->m_value.u.m_bool) {
+      s25->m_value.u.m_bool = ignition;
+      s25->m_value.m_time = t;
+      mgt_send(&client, s25);
     }
     
   } 
