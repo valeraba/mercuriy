@@ -180,6 +180,16 @@ void coefficientsWrite(Signal* aSignal, byte aValue) {
 }
 
 
+// write with confirmation for "dymosos"
+static void write_s3(bool aValue) {
+  if (setDymosos(aValue)) {
+    signal_update_int(s3, aValue, getUTCTime());
+    mgt_writeAns(&client, s3, erOk);
+  }
+  else
+    mgt_writeAns(&client, s3, erWriteFailed);
+
+}
 
 // asynchronous writes without confirmation for "servo1"
 static void writeAsync_s12(__uint8 aValue) {
@@ -272,7 +282,9 @@ static void handler(enum OpCode aOpCode, struct Signal* aSignal, struct SignalVa
     mgt_readAns(&client, aSignal, erOk);
     break;
   case opWrite:
-    if (aSignal == s15)
+    if (aSignal == s3)
+      write_s3(aWriteValue->u.m_bool);
+    else if (aSignal == s15)
       write_s15(aWriteValue->u.m_uint8);
     else if (aSignal == s16)
       write_s16(aWriteValue->u.m_uint8);
@@ -336,7 +348,7 @@ void setup() {
 
   s1 = mgt_createSignal(&client, "nasosKranKotel", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s2 = mgt_createSignal(&client, "nasosPotrebiteli", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
-  s3 = mgt_createSignal(&client, "dymosos", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
+  s3 = mgt_createSignal(&client, "dymosos", tpBool, SEC_LEV_READ | SIG_ACCESS_READ | SIG_ACCESS_WRITE, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s4 = mgt_createSignal(&client, "kranTA", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s5 = mgt_createSignal(&client, "zaslonkaDymohod", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s6 = mgt_createSignal(&client, "1_Dymovaya_Truba", tpFloat, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_AVERAGE | STORE_UNIT_SEC | 15, 0);

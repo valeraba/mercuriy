@@ -31,6 +31,7 @@ float tempCels[4];
 bool sensorOnline[4] = { false, false, false, false };
 
 static bool ignition = false; 
+static bool isSetDymosos = false; // возможность установки другого значения
 
 
 bool getNasosKranKotel() { return !digitalRead(nasosKranKotel); }
@@ -42,7 +43,12 @@ bool getZaslonkaDymohod() { return !digitalRead(zaslonkaDymohod); }
 //----функции для удалённого управления, наверное это не нужно?-------------
 bool setNasosKranKotel(bool aState) { digitalWrite(nasosKranKotel, !aState); return true; }
 bool setNasosPotrebiteli(bool aState) { digitalWrite(nasosPotrebiteli, !aState); return true; }
-bool setDymosos(bool aState) { digitalWrite(dymosos, !aState); return true; }
+bool setDymosos(bool aState) {
+  if (!isSetDymosos) // если установка не разрешена
+    return false;
+  digitalWrite(dymosos, !aState);
+  return true;
+}
 bool setKranTA(bool aState) { digitalWrite(kranTA, !aState); return true; }
 bool setZaslonkaDymohod(bool aState) { digitalWrite(zaslonkaDymohod, !aState); return true; }
 
@@ -134,6 +140,8 @@ void boiler_init() {
 
 // управление котлом
 void boiler_work() {
+  isSetDymosos = false;
+  
   if (powerServoState) { // если питание серв включено
     unsigned long t = millis();
     if (powerServoTime >  t) // если произошло переполнение счётчика
@@ -207,6 +215,8 @@ void boiler_work() {
       }
     }
     else {
+      isSetDymosos = true; // разрешить внешнюю установку
+      
       //-----Условия работы дымососа----------
       if (txaTemp < coefficients.dymosos_on) // Температура дыма меньше чем (по умолчанию 114 градусов)
         on(dymosos);// включит мотор дымососа;  
