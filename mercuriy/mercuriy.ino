@@ -7,8 +7,8 @@
 * Лямбда: A0
 */
 
-#define COUNT_SIGNALS 25
-#define COUNT_STORE 14
+#define COUNT_SIGNALS 25 // общее количество сигналов (для выделения памяти)
+#define COUNT_STORE 14   // общее количество регистрируемых сигналов (для выделения памяти)
 #include "Types.h"
 #include "MgtClient.h"
 #include "boiler.h"
