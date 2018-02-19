@@ -1,5 +1,5 @@
 /*
-Copyright ï¿½ 2015, BVAgile. All rights reserved.
+Copyright © 2015, BVAgile. All rights reserved.
 Contacts: <bvagile@gmail.com>
 */
 
