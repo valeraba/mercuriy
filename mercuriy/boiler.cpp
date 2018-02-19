@@ -1,14 +1,7 @@
 #include <Arduino.h>
 #include "boiler.h"
-#include <PWMServo.h> 
-
-//------- закрепляю за оборудованием цифровые выходы ардуино---------------
-#define kranTA 45             // Реле 1 - верхнее - КЭ2 (кран ТА)
-#define nasosPotrebiteli 43   // Реле 2 - второе сверху НЦ2, НЦ3, НЦ4 (насосы потребителей)
-#define dymosos 41            // Реле 3 - третье сверху - Дымосос 
-#define nasosKranKotel 39     // Реле 4 - нижнее - НЦ1, КЭ1 (насос и кран контура котла)
-#define zaslonkaDymohod 47    // Реле 4 нижний блок (нижнее)- МЗ(привод заслонки дымохода)  
-#define powerServo 49         // Реле 3 нижний блок - питание Сервоприводов
+#include <PWMServo.h>
+#include "pins.h"
 
 void debugLog(const __FlashStringHelper* aFormat, ...);
 
@@ -34,23 +27,23 @@ static bool ignition = false;
 static bool isSetDymosos = false; // возможность установки другого значения
 
 
-bool getNasosKranKotel() { return !digitalRead(nasosKranKotel); }
-bool getNasosPotrebiteli() { return !digitalRead(nasosPotrebiteli); }
-bool getDymosos() { return !digitalRead(dymosos); }
-bool getKranTA() { return !digitalRead(kranTA); }
-bool getZaslonkaDymohod() { return !digitalRead(zaslonkaDymohod); }
+bool getNasosKranKotel() { return !digitalRead(pinNasosKranKotel); }
+bool getNasosPotrebiteli() { return !digitalRead(pinNasosPotrebiteli); }
+bool getDymosos() { return !digitalRead(pinDymosos); }
+bool getKranTA() { return !digitalRead(pinKranTA); }
+bool getZaslonkaDymohod() { return !digitalRead(pinZaslonkaDymohod); }
 
 //----функции для удалённого управления, наверное это не нужно?-------------
-bool setNasosKranKotel(bool aState) { digitalWrite(nasosKranKotel, !aState); return true; }
-bool setNasosPotrebiteli(bool aState) { digitalWrite(nasosPotrebiteli, !aState); return true; }
+bool setNasosKranKotel(bool aState) { digitalWrite(pinNasosKranKotel, !aState); return true; }
+bool setNasosPotrebiteli(bool aState) { digitalWrite(pinNasosPotrebiteli, !aState); return true; }
 bool setDymosos(bool aState) {
   if (!isSetDymosos) // если установка не разрешена
     return false;
-  digitalWrite(dymosos, !aState);
+  digitalWrite(pinDymosos, !aState);
   return true;
 }
-bool setKranTA(bool aState) { digitalWrite(kranTA, !aState); return true; }
-bool setZaslonkaDymohod(bool aState) { digitalWrite(zaslonkaDymohod, !aState); return true; }
+bool setKranTA(bool aState) { digitalWrite(pinKranTA, !aState); return true; }
+bool setZaslonkaDymohod(bool aState) { digitalWrite(pinZaslonkaDymohod, !aState); return true; }
 
 byte getServo1() { return valServo1; }
 byte getServo2() { return valServo2; }
@@ -71,7 +64,7 @@ void setServo1(byte aValue, bool aForce = false) {
   valServo1 = aValue;
   aValue = (byte)((float)(100 - aValue) * 1.7); // от 0 до 170 град.
   servo1.write(aValue);
-  on(powerServo); // включим питание серв
+  on(pinPowerServo); // включим питание серв
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
   debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
@@ -84,7 +77,7 @@ void setServo2(byte aValue, bool aForce = false) {
   valServo2 = aValue;
   aValue = (byte)(100 - aValue); // 0 до 100 град.
   servo2.write(aValue);
-  on(powerServo); // включим питание серв
+  on(pinPowerServo); // включим питание серв
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
   debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
@@ -97,7 +90,7 @@ void setServo3(byte aValue, bool aForce = false) {
   valServo3 = aValue;
   aValue = (byte)((float)(100 - aValue) * 0.9); // от 0 до 90 град.
   servo3.write(aValue);
-  on(powerServo); // включим питание серв
+  on(pinPowerServo); // включим питание серв
   powerServoState = true;
   powerServoTime = millis(); // запомним время включения
   debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
@@ -117,22 +110,22 @@ bool setIgnition(bool aValue) {
 
 void boiler_init() {
   //---------Определение первоначальных состояний цифровым выходам--------
-  pinMode(zaslonkaDymohod, OUTPUT); // Назначаем порт "Выходом"
-  pinMode(kranTA, OUTPUT); // Назначаем порт "Выходом"
-  pinMode(nasosPotrebiteli, OUTPUT); // Назначаем порт "Выходом"
-  pinMode(dymosos, OUTPUT); // Назначаем порт "Выходом"
-  pinMode(nasosKranKotel, OUTPUT); // Назначаем порт "Выходом"
-  pinMode(powerServo, OUTPUT); // Назначаем порт "Выходом
-  digitalWrite(zaslonkaDymohod, LOW); // Назначаем первичное состояние ячейки Воздушой заслонки "LOW" - заслонка дымохода открыта
-  digitalWrite(kranTA, LOW); // Назначаем первичное состояние ячейки Крана ТА "HIGH"
-  digitalWrite(nasosPotrebiteli, HIGH); // Назначаем первичное состояние ячейки Насос потребители "HIGH"
-  digitalWrite(dymosos, HIGH); // Назначаем первичное состояние ячейки Дымососа "HIGH"
-  digitalWrite(nasosKranKotel, LOW); // Назначаем первичное состояние ячейки Насоса и крана котла "HIGH"
-  digitalWrite(powerServo, HIGH); // Назначаем первичное состояние питания Servo "HIGH"
+  pinMode(pinZaslonkaDymohod, OUTPUT); // Назначаем порт "Выходом"
+  pinMode(pinKranTA, OUTPUT); // Назначаем порт "Выходом"
+  pinMode(pinNasosPotrebiteli, OUTPUT); // Назначаем порт "Выходом"
+  pinMode(pinDymosos, OUTPUT); // Назначаем порт "Выходом"
+  pinMode(pinNasosKranKotel, OUTPUT); // Назначаем порт "Выходом"
+  pinMode(pinPowerServo, OUTPUT); // Назначаем порт "Выходом
+  digitalWrite(pinZaslonkaDymohod, LOW); // Назначаем первичное состояние ячейки Воздушой заслонки "LOW" - заслонка дымохода открыта
+  digitalWrite(pinKranTA, LOW); // Назначаем первичное состояние ячейки Крана ТА "HIGH"
+  digitalWrite(pinNasosPotrebiteli, HIGH); // Назначаем первичное состояние ячейки Насос потребители "HIGH"
+  digitalWrite(pinDymosos, HIGH); // Назначаем первичное состояние ячейки Дымососа "HIGH"
+  digitalWrite(pinNasosKranKotel, LOW); // Назначаем первичное состояние ячейки Насоса и крана котла "HIGH"
+  digitalWrite(pinPowerServo, HIGH); // Назначаем первичное состояние питания Servo "HIGH"
 
-  servo1.attach(11);
-  servo2.attach(12);
-  servo3.attach(13);//the pin for the servo control // Указываем к какому пину подключена servo
+  servo1.attach(pinServo1);
+  servo2.attach(pinServo2);
+  servo3.attach(pinServo3);//the pin for the servo control // Указываем к какому пину подключена servo
   setServo1(0, true);
   setServo2(0, true);
   setServo3(0, true);
@@ -147,7 +140,7 @@ void boiler_work() {
     if (powerServoTime >  t) // если произошло переполнение счётчика
       powerServoTime = t;
     else if (t > (unsigned long)(powerServoTime + 5000)) { // если с момента последнего включения прошло более 5 секунд
-      off(powerServo); // выключим питание серв
+      off(pinPowerServo); // выключим питание серв
       powerServoState = false;  
       debugLog(F("powerServo OFF, t = %lu\n"), t); // TODO для отладки
     }
@@ -166,7 +159,7 @@ void boiler_work() {
   // Порядок работы СО в период работы котла (kotelActive)
   //----------------------
   if (kotelActive || ignition) {
-    on(nasosKranKotel);
+    on(pinNasosKranKotel);
 
     // Условие определяющее включение циркуляционного насаса потребителей 
     static bool systemHot = false;
@@ -175,9 +168,9 @@ void boiler_work() {
     else if (tempCels[Kotel_Vyhod] < coefficients.nasosPotrebitel_off) // если температура котла меньше чем (по умолчанию 60 градусов)
       systemHot = false;
     if (systemHot)
-      on(nasosPotrebiteli); // включает насос потребителей
+      on(pinNasosPotrebiteli); // включает насос потребителей
     else
-      off(nasosPotrebiteli);
+      off(pinNasosPotrebiteli);
 
     // Условие определяющее подпитку Котла водой из ТА
     static bool systemVeryHot = false;
@@ -186,9 +179,9 @@ void boiler_work() {
     else if (tempCels[Kotel_Vyhod] < coefficients.kranTaJob_off) // если температура котла меньше чем (по умолчанию 84 градуса)
       systemVeryHot = false;
     if (systemVeryHot)
-      on(kranTA); // в случае нагрева котла открыть кран подачи в ТА
+      on(pinKranTA); // в случае нагрева котла открыть кран подачи в ТА
     else
-      off(kranTA);
+      off(pinKranTA);
 
     static byte saveServo1; // здесь сохраннёные состояния положений заслонок
     static byte saveServo2;
@@ -202,8 +195,8 @@ void boiler_work() {
      systemCRIHot = false;
     if (systemCRIHot) { // если котел перегрет
       ignition = false; // переход в автоматический режим
-      on(zaslonkaDymohod); // закроет заслонку дым трубы, остановить подачу воздуха в котел
-      off(dymosos);// остановит мотор дымососа;
+      on(pinZaslonkaDymohod); // закроет заслонку дым трубы, остановить подачу воздуха в котел
+      off(pinDymosos);// остановит мотор дымососа;
 
       if (!prevState) { // если произошло изменение состояния
         saveServo1 = valServo1; // сохраним положение всех заслонок
@@ -219,10 +212,10 @@ void boiler_work() {
       
       //-----Условия работы дымососа----------
       if (txaTemp < coefficients.dymosos_on) // Температура дыма меньше чем (по умолчанию 114 градусов)
-        on(dymosos);// включит мотор дымососа;  
+        on(pinDymosos);// включит мотор дымососа;  
       else if (txaTemp > coefficients.dymosos_off) { // Температура дыма больше чем (по умолчанию 135 градусов)
         ignition = false; // переход в автоматический режим
-        off(dymosos);// остановит мотор дымососа
+        off(pinDymosos);// остановит мотор дымососа
       }
 
       // если мотор дымососа включён, то закроем заслонку дымовой трубы
@@ -242,9 +235,9 @@ void boiler_work() {
   }
   //--------------------------
   else { // Состояние оборудования в период когда котел "спит"
-    off(nasosKranKotel); // Остановлен насос котла, закрыт кран котла
-    on(zaslonkaDymohod); // остановить подачу воздуха в котел
-    off(dymosos);
+    off(pinNasosKranKotel); // Остановлен насос котла, закрыт кран котла
+    on(pinZaslonkaDymohod); // остановить подачу воздуха в котел
+    off(pinDymosos);
 
     // Условия определяющие состояние ТА при разборе с него тепла (для спящего режима)
     static bool accumulatorWarm = false;
@@ -253,12 +246,12 @@ void boiler_work() {
     else if (tempCels[Verh_TA] < coefficients.kranTaSleep_off) // есть ли в аккумуляторе холодно меньше чем (по умолчанию 27С)
       accumulatorWarm = false;
     if (accumulatorWarm) { // если в аккумуляторе есть тепло
-      on(kranTA); // обогрев  
-      on(nasosPotrebiteli);  // ТА
+      on(pinKranTA); // обогрев  
+      on(pinNasosPotrebiteli);  // ТА
     }
     else {
-      off(nasosPotrebiteli);
-      off(kranTA);
+      off(pinNasosPotrebiteli);
+      off(pinKranTA);
     }
     // окончание описания состояния оборудования в период когда котел "спит"
   }

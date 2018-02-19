@@ -1,12 +1,3 @@
-/*Используются цифровые выходы
-* Дисплей: 44, 46, 48
-* Реле: 39, 41, 43, 45, 47, 49
-* Термопара: 24, 26, 28
-* DS18b20: 25, 27, 29, 31
-* Сервоприводы: 11, 12, 13
-* Лямбда: A0
-*/
-
 #define COUNT_SIGNALS 25
 #define COUNT_STORE 14
 #include "Types.h"
@@ -14,6 +5,7 @@
 #include "boiler.h"
 #include "display.h"
 #include <EEPROM.h>
+#include "pins.h"
 
 extern signed long device_id;
 extern char* authorization_key;
@@ -26,11 +18,8 @@ extern char* authorization_key;
 //-------Добавил свои библиотки-----------
 #include "Adafruit_MAX31855.h"
 #include <OneWire.h>
-//--------назначил выходы Ардуино для взаимодействия с MAX31855-------
-#define thermoDO  28
-#define thermoCS  26
-#define thermoCLK 24
-Adafruit_MAX31855 thermocouple(thermoCLK, thermoCS, thermoDO);
+
+Adafruit_MAX31855 thermocouple(pinThermoCLK, pinThermoCS, pinThermoDO);
 
 #define oxygenPin A0
 
@@ -517,10 +506,10 @@ bool run_ds(TimeStamp time)
   static bool isFind[4] = { false, false, false, false };
   static byte rom[4][8];
   static OneWire ds[4] = { 
-    OneWire(31), // Температура воды Котел подача  ДТ2
-    OneWire(29), // Температура воды Котел обратка ДТ3
-    OneWire(27), // Температура воды ТА Верхняя часть ДТ4
-    OneWire(25) // Температура воды ТА Нижняя  часть ДТ5
+    OneWire(pinDS2), // Температура воды Котел подача  ДТ2
+    OneWire(pinDS3), // Температура воды Котел обратка ДТ3
+    OneWire(pinDS4), // Температура воды ТА Верхняя часть ДТ4
+    OneWire(pinDS5) // Температура воды ТА Нижняя  часть ДТ5
   };
 
   if ((time - convertTime) < 800)

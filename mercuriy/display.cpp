@@ -2,12 +2,10 @@
 #include "display.h"
 #include "boiler.h"
 #include "U8glib.h"
+#include "pins.h"
 
-//------- Создаю функцию для взаимодействия с дисплеем--
-U8GLIB_ST7920_128X64_1X u8g(48, 46, 44);  
-//SPI Com: SCK = en (E) = 48, MOSI = R/W = 46, CS = di(RS) = 44 (назначаю выходы Ардуино для дисплея)
-// Кроме этого GND на (VSS, K(BLK) и PSB), +5В на (VDD и А(BLA))
-//--------------
+// Создаю объект для взаимодействия с дисплеем
+U8GLIB_ST7920_128X64_1X u8g(pinU8SCK, pinU8MOSI, pinU8CS);  
 
 void display_init() {
   u8g.setRot180();
