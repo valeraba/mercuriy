@@ -17,9 +17,9 @@
   */
   
   //--------Дисплей-----------------
-  #define pinU8SCK  48
-  #define pinU8MOSI 46
-  #define pinU8CS   44
+  #define pinU8SCK  48 // E
+  #define pinU8MOSI 46 // R/W
+  #define pinU8CS   44 // D/I
   // Кроме этого GND на (VSS, K(BLK) и PSB), +5В на (VDD и А(BLA))
   
   //--------Термопара MAX31855-------
@@ -50,34 +50,34 @@
   //========Новая версия============
 
   //--------Дисплей-----------------
-  #define pinU8SCK  ?
-  #define pinU8MOSI ?
-  #define pinU8CS   ?
+  #define pinU8SCK  44 //E
+  #define pinU8MOSI 46 // R/W
+  #define pinU8CS   48 // D/I
   // Кроме этого GND на (VSS, K(BLK) и PSB), +5В на (VDD и А(BLA))
   
   //--------Термопара MAX31855-------
-  #define pinThermoDO  ?
-  #define pinThermoCS  ?
-  #define pinThermoCLK ?
+  #define pinThermoDO  47
+  #define pinThermoCS  49
+  #define pinThermoCLK 53
   
   //--------Сервоприводы-------------
-  #define pinServo1 ?
-  #define pinServo2 ?
-  #define pinServo3 ?
+  #define pinServo1 11
+  #define pinServo2 12
+  #define pinServo3 13
   
   //--------Реле---------------------
-  #define pinKranTA ?             // Реле 1 - верхнее - КЭ2 (кран ТА)
-  #define pinNasosPotrebiteli ?   // Реле 2 - второе сверху НЦ2, НЦ3, НЦ4 (насосы потребителей)
-  #define pinDymosos ?            // Реле 3 - третье сверху - Дымосос 
-  #define pinNasosKranKotel ?     // Реле 4 - нижнее - НЦ1, КЭ1 (насос и кран контура котла)
-  #define pinZaslonkaDymohod ?    // Реле 4 нижний блок (нижнее)- МЗ(привод заслонки дымохода)  
-  #define pinPowerServo ?         // Реле 3 нижний блок - питание Сервоприводов
+  #define pinDymosos 28            // Реле 1 - верхнее - КЭ2 (кран ТА)
+  #define pinNasosKranKotel 26     // Реле 2 - второе сверху НЦ2, НЦ3, НЦ4 (насосы потребителей)
+  #define pinNasosPotrebiteli 24   // Реле 3 - третье сверху - Дымосос 
+  #define pinKranTA 22             // Реле 4 - нижнее - НЦ1, КЭ1 (насос и кран контура котла)
+  #define pinZaslonkaDymohod 23    // Реле 1 нижний блок (нижнее)- МЗ(привод заслонки дымохода)  
+  #define pinPowerServo 25         // Реле 2 нижний блок - питание Сервоприводов
   
   //--------DS18b20------------------
-  #define pinDS2 ?  // Температура воды Котел подача  ДТ2
-  #define pinDS3 ?  // Температура воды Котел обратка ДТ3
-  #define pinDS4 ?  // Температура воды ТА Верхняя часть ДТ4
-  #define pinDS5 ?  // Температура воды ТА Нижняя  часть ДТ5
+  #define pinDS2 36  // Температура воды Котел подача  ДТ2
+  #define pinDS3 38  // Температура воды Котел обратка ДТ3
+  #define pinDS4 40  // Температура воды ТА Верхняя часть ДТ4
+  #define pinDS5 42  // Температура воды ТА Нижняя  часть ДТ5
 
 #endif
 
