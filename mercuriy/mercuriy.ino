@@ -126,7 +126,7 @@ void coefficientsWrite(Signal* aSignal, byte aValue) {
   else if (aSignal == s19) { min = 55; max = 75; s = s20; delta = -5; }
   else if (aSignal == s20) { min = 50; max = 70; s = s19; delta = 5; }
   else if (aSignal == s21) { min = 100; max = 140; s = s22; delta = 20; }
-  else if (aSignal == s22) { min = 120; max = 170; s = s21; delta = -20; }
+  else if (aSignal == s22) { min = 130; max = 170; s = s21; delta = -20; }
   else if (aSignal == s23) { min = 90; max = 97; s = s24; delta = -1; }
   else if (aSignal == s24) { min = 89; max = 96; s = s23; delta = 1; }
 
