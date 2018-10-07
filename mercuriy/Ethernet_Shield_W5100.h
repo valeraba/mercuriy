@@ -29,11 +29,9 @@ void sleepms(__uint32 aMilliseconds) {
 
 static bool socket_open(const char* aHost, __uint16 aPort) {
 	socket.stop();
-//if (Ethernet.begin(mac) == 0) {
-  if (Ethernet.begin(mac, 5000, 4000) == 0) { // нужно подобрать оптимальные задержки
-		Serial.println("Failed to configure Ethernet using DHCP");
+  //if (Ethernet.begin(mac, 5000, 4000) == 0) { // нужно подобрать оптимальные задержки//пофиксил 07102018
+	//Serial.println("Failed to configure Ethernet using DHCP");//пофиксил 07102018 только эти две строчки
 		Ethernet.begin(mac, ip);
-	}
 	delay(1000);
   
 	if (socket.connect(aHost, aPort))
