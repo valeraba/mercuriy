@@ -1,8 +1,6 @@
 #ifndef _boiler_H_
 #define _boiler_H_
 
-#include "Types.h"
-
 #define Kotel_Vyhod 0    // ДТ2
 #define Kotel_Obratka 1  // ДТ3
 #define Verh_TA 2        // ДТ4

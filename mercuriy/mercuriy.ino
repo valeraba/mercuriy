@@ -181,6 +181,8 @@ void coefficientsWrite(Signal* aSignal, byte aValue) {
     s = s23;
     delta = 1;
   }
+  else
+    return;
 
   if ((aValue < min) || (aValue > max)) {
     mgt_writeAns(&client, aSignal, erWriteFailed);
