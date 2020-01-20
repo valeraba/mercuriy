@@ -1,6 +1,8 @@
 #ifndef _boiler_H_
 #define _boiler_H_
 
+#include "Types.h"
+
 #define Kotel_Vyhod 0    // ДТ2
 #define Kotel_Obratka 1  // ДТ3
 #define Verh_TA 2        // ДТ4
@@ -50,13 +52,13 @@ bool getIgnition();
 bool setIgnition(bool aValue);
 
 //----датчики--------------
-extern float txaTemp; // Dymovaya_Truba"; // ТХА  
+extern float txaTemp; // Dymovaya_Truba"; // ТХА
 extern float oxygen;
 extern float tempCels[4]; // массив считанных значений 1-wire
-                  // Kotel_Vyhod";    // ДТ2
-                  // Kotel_Obratka";  // ДТ3
-                  // Verh_TA";        // ДТ4
-                  // Niz_TA";         // ДТ5
+// Kotel_Vyhod";    // ДТ2
+// Kotel_Obratka";  // ДТ3
+// Verh_TA";        // ДТ4
+// Niz_TA";         // ДТ5
 extern bool sensorOnline[4];
 
 // инициализация

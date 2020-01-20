@@ -23,31 +23,59 @@ float oxygen;
 float tempCels[4];
 bool sensorOnline[4] = { false, false, false, false };
 
-static bool ignition = false; 
+static bool ignition = false;
 static bool isSetDymosos = false; // возможность установки другого значения
 
 
-bool getNasosKranKotel() { return !digitalRead(pinNasosKranKotel); }
-bool getNasosPotrebiteli() { return !digitalRead(pinNasosPotrebiteli); }
-bool getDymosos() { return !digitalRead(pinDymosos); }
-bool getKranTA() { return !digitalRead(pinKranTA); }
-bool getZaslonkaDymohod() { return !digitalRead(pinZaslonkaDymohod); }
+bool getNasosKranKotel() {
+  return !digitalRead(pinNasosKranKotel);
+}
+bool getNasosPotrebiteli() {
+  return !digitalRead(pinNasosPotrebiteli);
+}
+bool getDymosos() {
+  return !digitalRead(pinDymosos);
+}
+bool getKranTA() {
+  return !digitalRead(pinKranTA);
+}
+bool getZaslonkaDymohod() {
+  return !digitalRead(pinZaslonkaDymohod);
+}
 
 //----функции для удалённого управления, наверное это не нужно?-------------
-bool setNasosKranKotel(bool aState) { digitalWrite(pinNasosKranKotel, !aState); return true; }
-bool setNasosPotrebiteli(bool aState) { digitalWrite(pinNasosPotrebiteli, !aState); return true; }
+bool setNasosKranKotel(bool aState) {
+  digitalWrite(pinNasosKranKotel, !aState);
+  return true;
+}
+bool setNasosPotrebiteli(bool aState) {
+  digitalWrite(pinNasosPotrebiteli, !aState);
+  return true;
+}
 bool setDymosos(bool aState) {
   if (!isSetDymosos) // если установка не разрешена
     return false;
   digitalWrite(pinDymosos, !aState);
   return true;
 }
-bool setKranTA(bool aState) { digitalWrite(pinKranTA, !aState); return true; }
-bool setZaslonkaDymohod(bool aState) { digitalWrite(pinZaslonkaDymohod, !aState); return true; }
+bool setKranTA(bool aState) {
+  digitalWrite(pinKranTA, !aState);
+  return true;
+}
+bool setZaslonkaDymohod(bool aState) {
+  digitalWrite(pinZaslonkaDymohod, !aState);
+  return true;
+}
 
-byte getServo1() { return valServo1; }
-byte getServo2() { return valServo2; }
-byte getServo3() { return valServo3; }
+byte getServo1() {
+  return valServo1;
+}
+byte getServo2() {
+  return valServo2;
+}
+byte getServo3() {
+  return valServo3;
+}
 
 static void on(int relay) {
   digitalWrite(relay, LOW);
@@ -56,7 +84,7 @@ static void off(int relay) {
   digitalWrite(relay, HIGH);
 }
 
-void setServo1(byte aValue, bool aForce = false) {
+void setServo1(byte aValue, bool aForce) {
   if ((systemCRIHot) && (!aForce)) // если котел перегрет
     return;
   if (aValue > 100)
@@ -69,7 +97,7 @@ void setServo1(byte aValue, bool aForce = false) {
   powerServoTime = millis(); // запомним время включения
   debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
 }
-void setServo2(byte aValue, bool aForce = false) {
+void setServo2(byte aValue, bool aForce) {
   if ((systemCRIHot) && (!aForce)) // если котел перегрет
     return;
   if (aValue > 100)
@@ -82,7 +110,7 @@ void setServo2(byte aValue, bool aForce = false) {
   powerServoTime = millis(); // запомним время включения
   debugLog(F("powerServo ON, t = %lu\n"), powerServoTime); // TODO для отладки
 }
-void setServo3(byte aValue, bool aForce = false) {
+void setServo3(byte aValue, bool aForce) {
   if ((systemCRIHot) && (!aForce)) // если котел перегрет
     return;
   if (aValue > 100)
@@ -134,23 +162,23 @@ void boiler_init() {
 // управление котлом
 void boiler_work() {
   isSetDymosos = false;
-  
+
   if (powerServoState) { // если питание серв включено
     unsigned long t = millis();
     if (powerServoTime >  t) // если произошло переполнение счётчика
       powerServoTime = t;
     else if (t > (unsigned long)(powerServoTime + 5000)) { // если с момента последнего включения прошло более 5 секунд
       off(pinPowerServo); // выключим питание серв
-      powerServoState = false;  
+      powerServoState = false;
       debugLog(F("powerServo OFF, t = %lu\n"), t); // TODO для отладки
     }
-  } 
-  
+  }
+
   //-----------------------------
   // Условия определяющие состояние Котла -kotelActive-
   //--------------------------------------
   if (tempCels[Kotel_Vyhod] > 95 || txaTemp > 109) // если температура воды
-    kotelActive = true; //на выходе из котла более 95 градусов или дыма более 109 (105) градусов  
+    kotelActive = true; //на выходе из котла более 95 градусов или дыма более 109 (105) градусов
   if (tempCels[Kotel_Vyhod] < 94 && txaTemp < 108) // если  температура воды менее 94 и
     kotelActive = false;//  температура дыма менее 108 (100) град. С
 
@@ -161,7 +189,7 @@ void boiler_work() {
   if (kotelActive || ignition) {
     on(pinNasosKranKotel);
 
-    // Условие определяющее включение циркуляционного насаса потребителей 
+    // Условие определяющее включение циркуляционного насаса потребителей
     static bool systemHot = false;
     if (tempCels[Kotel_Vyhod] > coefficients.nasosPotrebitel_on) // если температура котла больше чем (по умолчанию 65 градусов)
       systemHot = true;
@@ -192,7 +220,7 @@ void boiler_work() {
     if (tempCels[Kotel_Vyhod] > coefficients.systemCRIHot_max) // если котел перегрет больше чем (по умолчанию 96 градусов)
       systemCRIHot = true;
     else if (tempCels[Kotel_Vyhod] < coefficients.systemCRIHot_min) // если котел не перегрет меньше чем (по умолчанию 95 градусов)
-     systemCRIHot = false;
+      systemCRIHot = false;
     if (systemCRIHot) { // если котел перегрет
       ignition = false; // переход в автоматический режим
       on(pinZaslonkaDymohod); // закроет заслонку дым трубы, остановить подачу воздуха в котел
@@ -209,10 +237,10 @@ void boiler_work() {
     }
     else {
       isSetDymosos = true; // разрешить внешнюю установку
-      
+
       //-----Условия работы дымососа----------
       if (txaTemp < coefficients.dymosos_on) // Температура дыма меньше чем (по умолчанию 114 градусов)
-        on(pinDymosos);// включит мотор дымососа;  
+        on(pinDymosos);// включит мотор дымососа;
       else if (txaTemp > coefficients.dymosos_off) { // Температура дыма больше чем (по умолчанию 135 градусов)
         ignition = false; // переход в автоматический режим
         off(pinDymosos);// остановит мотор дымососа
@@ -221,7 +249,7 @@ void boiler_work() {
       // если мотор дымососа включён, то закроем заслонку дымовой трубы
       // если мотор дымососа выключен, то откроем заслонку дымовой трубы
       setZaslonkaDymohod(getDymosos());
-      //-------------------------------------      
+      //-------------------------------------
 
       if (prevState) { // если произошло изменение состояния
         setServo1(saveServo1); // восстановим сохранённое положение всех заслонок
@@ -246,7 +274,7 @@ void boiler_work() {
     else if (tempCels[Verh_TA] < coefficients.kranTaSleep_off) // есть ли в аккумуляторе холодно меньше чем (по умолчанию 27С)
       accumulatorWarm = false;
     if (accumulatorWarm) { // если в аккумуляторе есть тепло
-      on(pinKranTA); // обогрев  
+      on(pinKranTA); // обогрев
       on(pinNasosPotrebiteli);  // ТА
     }
     else {

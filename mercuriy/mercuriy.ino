@@ -7,8 +7,10 @@
 #include <EEPROM.h>
 #include "pins.h"
 
+extern const char* host1;
+extern const char* host2;
 extern signed long device_id;
-extern char* authorization_key;
+extern const char* authorization_key;
 
 //-------Select your platform----------------
 #include "Ethernet_Shield_W5100.h"
@@ -72,7 +74,7 @@ void coefficientsSave() {
     EEPROM.update(i, data[i]);
 
   __uint32 crc = crc32((__uint8*)(&coefficients), len, 0xffffffff);
-  data = (byte*)(&crc32);
+  data = (byte*)(&crc);
   for (int i = len; i < 4; i++)
     EEPROM.update(i + len, data[i]);
 }
@@ -99,8 +101,8 @@ void coefficientsInit() {
     coefficients.dymosos_off = 135;
     coefficients.systemCRIHot_max = 96;
     coefficients.systemCRIHot_min = 95;
-  
-    coefficientsSave();    
+
+    coefficientsSave();
   }
 
   // синхронизируем
@@ -109,7 +111,7 @@ void coefficientsInit() {
   for (byte i = 0; i < 10; i++) {
     s->m_value.u.m_uint8 = *coefficient;
     s++;
-    coefficient++; 
+    coefficient++;
   }
 
 }
@@ -118,21 +120,71 @@ void coefficientsWrite(Signal* aSignal, byte aValue) {
   byte min;
   byte max;
   Signal* s;
-  char delta; 
-  if (aSignal == s15) { min = 70; max = 90; s = s16; delta = -1; }
-  else if (aSignal == s16) { min = 69; max = 89; s = s15; delta = 1; }
-  else if (aSignal == s17) { min = 23; max = 35; s = s18; delta = -1; }
-  else if (aSignal == s18) { min = 22; max = 34; s = s17; delta = 1; }
-  else if (aSignal == s19) { min = 55; max = 75; s = s20; delta = -5; }
-  else if (aSignal == s20) { min = 50; max = 70; s = s19; delta = 5; }
-  else if (aSignal == s21) { min = 100; max = 140; s = s22; delta = 20; }
-  else if (aSignal == s22) { min = 130; max = 170; s = s21; delta = -20; }
-  else if (aSignal == s23) { min = 90; max = 97; s = s24; delta = -1; }
-  else if (aSignal == s24) { min = 89; max = 96; s = s23; delta = 1; }
+  char delta;
+  if (aSignal == s15) {
+    min = 70;
+    max = 90;
+    s = s16;
+    delta = -1;
+  }
+  else if (aSignal == s16) {
+    min = 69;
+    max = 89;
+    s = s15;
+    delta = 1;
+  }
+  else if (aSignal == s17) {
+    min = 23;
+    max = 35;
+    s = s18;
+    delta = -1;
+  }
+  else if (aSignal == s18) {
+    min = 22;
+    max = 34;
+    s = s17;
+    delta = 1;
+  }
+  else if (aSignal == s19) {
+    min = 55;
+    max = 75;
+    s = s20;
+    delta = -5;
+  }
+  else if (aSignal == s20) {
+    min = 50;
+    max = 70;
+    s = s19;
+    delta = 5;
+  }
+  else if (aSignal == s21) {
+    min = 100;
+    max = 140;
+    s = s22;
+    delta = 20;
+  }
+  else if (aSignal == s22) {
+    min = 130;
+    max = 170;
+    s = s21;
+    delta = -20;
+  }
+  else if (aSignal == s23) {
+    min = 90;
+    max = 97;
+    s = s24;
+    delta = -1;
+  }
+  else if (aSignal == s24) {
+    min = 89;
+    max = 96;
+    s = s23;
+    delta = 1;
+  }
 
   if ((aValue < min) || (aValue > max)) {
     mgt_writeAns(&client, aSignal, erWriteFailed);
-    return;   
+    return;
   }
 
   TimeStamp t = getUTCTime();
@@ -155,17 +207,17 @@ void coefficientsWrite(Signal* aSignal, byte aValue) {
       mgt_send(&client, s);
     }
   }
-    
+
   // синхронизируем
   s = s15;
   byte* coefficient = (byte*)(&coefficients);
   for (byte i = 0; i < 10; i++) {
     *coefficient = s->m_value.u.m_uint8;
     s++;
-    coefficient++; 
+    coefficient++;
   }
 
-  coefficientsSave(); 
+  coefficientsSave();
 }
 
 
@@ -266,44 +318,46 @@ static void write_s25(bool aValue) {
 
 static void handler(enum OpCode aOpCode, struct Signal* aSignal, struct SignalValue* aWriteValue) {
   switch (aOpCode) {
-  case opRead:
-    signal_updateTime(aSignal, getUTCTime());
-    mgt_readAns(&client, aSignal, erOk);
-    break;
-  case opWrite:
-    if (aSignal == s3)
-      write_s3(aWriteValue->u.m_bool);
-    else if (aSignal == s15)
-      write_s15(aWriteValue->u.m_uint8);
-    else if (aSignal == s16)
-      write_s16(aWriteValue->u.m_uint8);
-    else if (aSignal == s17)
-      write_s17(aWriteValue->u.m_uint8);
-    else if (aSignal == s18)
-      write_s18(aWriteValue->u.m_uint8);
-    else if (aSignal == s19)
-      write_s19(aWriteValue->u.m_uint8);
-    else if (aSignal == s20)
-      write_s20(aWriteValue->u.m_uint8);
-    else if (aSignal == s21)
-      write_s21(aWriteValue->u.m_uint8);
-    else if (aSignal == s22)
-      write_s22(aWriteValue->u.m_uint8);
-    else if (aSignal == s23)
-      write_s23(aWriteValue->u.m_uint8);
-    else if (aSignal == s24)
-      write_s24(aWriteValue->u.m_uint8);
-    else if (aSignal == s25)
-      write_s25(aWriteValue->u.m_bool);
-    break;
-  case opWriteAsync:
-    if (aSignal == s12)
-      writeAsync_s12(aWriteValue->u.m_uint8);
-    else if (aSignal == s13)
-      writeAsync_s13(aWriteValue->u.m_uint8);
-    else if (aSignal == s14)
-      writeAsync_s14(aWriteValue->u.m_uint8);
-    break;
+    case opRead:
+      signal_updateTime(aSignal, getUTCTime());
+      mgt_readAns(&client, aSignal, erOk);
+      break;
+    case opWrite:
+      if (aSignal == s3)
+        write_s3(aWriteValue->u.m_bool);
+      else if (aSignal == s15)
+        write_s15(aWriteValue->u.m_uint8);
+      else if (aSignal == s16)
+        write_s16(aWriteValue->u.m_uint8);
+      else if (aSignal == s17)
+        write_s17(aWriteValue->u.m_uint8);
+      else if (aSignal == s18)
+        write_s18(aWriteValue->u.m_uint8);
+      else if (aSignal == s19)
+        write_s19(aWriteValue->u.m_uint8);
+      else if (aSignal == s20)
+        write_s20(aWriteValue->u.m_uint8);
+      else if (aSignal == s21)
+        write_s21(aWriteValue->u.m_uint8);
+      else if (aSignal == s22)
+        write_s22(aWriteValue->u.m_uint8);
+      else if (aSignal == s23)
+        write_s23(aWriteValue->u.m_uint8);
+      else if (aSignal == s24)
+        write_s24(aWriteValue->u.m_uint8);
+      else if (aSignal == s25)
+        write_s25(aWriteValue->u.m_bool);
+      break;
+    case opWriteAsync:
+      if (aSignal == s12)
+        writeAsync_s12(aWriteValue->u.m_uint8);
+      else if (aSignal == s13)
+        writeAsync_s13(aWriteValue->u.m_uint8);
+      else if (aSignal == s14)
+        writeAsync_s14(aWriteValue->u.m_uint8);
+      break;
+    default:
+      break;
   }
 }
 
@@ -319,21 +373,20 @@ void setup() {
   int availableMemory = 8192;
   byte *buf;
   while ((buf = (byte *) malloc(--availableMemory)) == NULL);
-    free(buf);
+  free(buf);
   debugLog(F("Available RAM: %i\n"), availableMemory);
 #endif
   struct DeviceConfig deviceConfig;
   deviceConfig.m_deviceId = device_id;
   deviceConfig.m_login = 0;
   deviceConfig.m_password = authorization_key;
-  deviceConfig.m_hostname = "mgt24.ru";
   deviceConfig.m_debugLog = debugLog;
   deviceConfig.m_handler = handler;
   deviceConfig.m_storeFields = client.m_storeFields;
   deviceConfig.m_regSize = COUNT_STORE;
 
   if (!mgt_init(&client, &deviceConfig, &mySocket))
-    while(1);
+    while (1);
 
   s1 = mgt_createSignal(&client, "nasosKranKotel", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
   s2 = mgt_createSignal(&client, "nasosPotrebiteli", tpBool, SEC_LEV_READ | SIG_ACCESS_READ, STORE_MODE_CHANGE | STORE_UNIT_MIN | 1, 0);
@@ -363,7 +416,7 @@ void setup() {
 
   coefficientsInit();
 
-  mgt_start(&client);
+  mgt_start(&client, host1);
 }
 
 struct Period {
@@ -387,7 +440,7 @@ void loop() {
   TimeStamp t = getUTCTime();
   bool isNewValue = run_ds(t); // пробуем считать значение датчиков
   double txa;
-  
+
   if (isNewValue) { // если вычитаны новые значения
     //---- Начало моего рабочего кода (мой loop())--
     //temperaturePrint(0);
@@ -396,18 +449,18 @@ void loop() {
     //temperaturePrint(3);
 
     txa = thermocouple.readCelsius(); // довольно часто возращается NAN
-    if (txa == txa) // если не NAN 
+    if (txa == txa) // если не NAN
       txaTemp = txa + 0.5;  // 0.5 поправочное значение
     //Serial.print("Smoke temp:");
     //Serial.println(txaTemp);
 
     oxygen = (float)analogRead(oxygenPin) * (2.56 / 1024); // пока в вольтах
-    
+
     boiler_work();
     display_draw();
 
-    if (txa == txa) // если не NAN 
-      signal_update_double(s6, txaTemp, t);  
+    if (txa == txa) // если не NAN
+      signal_update_double(s6, txaTemp, t);
     if (sensorOnline[Kotel_Vyhod])
       signal_update_double(s7, tempCels[Kotel_Vyhod], t);
     if (sensorOnline[Kotel_Obratka])
@@ -416,13 +469,16 @@ void loop() {
       signal_update_double(s9, tempCels[Verh_TA], t);
     if (sensorOnline[Niz_TA])
       signal_update_double(s10, tempCels[Niz_TA], t);
-    signal_update_double(s11, oxygen, t);  
+    signal_update_double(s11, oxygen, t);
   }
 
-  if (mgt_run(&client) == stConnected) {
-    
+  static bool toggleServer = false;
+
+  MgtState mgtState = mgt_run(&client);
+  if (mgtState == stConnected) {
+
     if (isNewValue) { // если вычитаны новые значения
-      if (txa == txa) // если не NAN      
+      if (txa == txa) // если не NAN
         mgt_send(&client, s6);
       if (sensorOnline[Kotel_Vyhod])
         mgt_send(&client, s7);
@@ -432,10 +488,10 @@ void loop() {
         mgt_send(&client, s9);
       if (sensorOnline[Niz_TA])
         mgt_send(&client, s10);
-      mgt_send(&client, s11);    
+      mgt_send(&client, s11);
     }
 
-    
+
     bool relay[5] = {
       getNasosKranKotel(),
       getNasosPotrebiteli(),
@@ -449,7 +505,7 @@ void loop() {
       getServo2(),
       getServo3()
     };
-   
+
     Signal* sRelay = s1;
     Signal* sServo = s12;
     t = getUTCTime();
@@ -464,7 +520,7 @@ void loop() {
       for (byte i = 0; i < 3; i++) {
         sServo->m_value.u.m_uint8 = servoPosition[i];
         sServo->m_value.m_time = t;
-        mgt_send(&client, sServo);      
+        mgt_send(&client, sServo);
         sServo++;
       }
     }
@@ -481,7 +537,7 @@ void loop() {
         if (sServo->m_value.u.m_uint8 != servoPosition[i]) {
           sServo->m_value.u.m_uint8 = servoPosition[i];
           sServo->m_value.m_time = t;
-          mgt_send(&client, sServo);      
+          mgt_send(&client, sServo);
         }
         sServo++;
       }
@@ -493,11 +549,27 @@ void loop() {
       s25->m_value.m_time = t;
       mgt_send(&client, s25);
     }
-    
-  } 
+
+  }
+  else if (mgtState == stDisconnect) {
+    if (strlen(host2)) {
+      mgt_stop(&client, 0);
+      if (toggleServer) {
+        toggleServer = false;
+        mgt_start(&client, host1);
+        debugLog(F("start %s\n"), host1);
+      }
+      else {
+        toggleServer = true;
+        mgt_start(&client, host2);
+        debugLog(F("start %s\n"), host2);
+      }
+    }
+  }
+
 }
 
-// Не блокирующая функция чтения датчиков 
+// Не блокирующая функция чтения датчиков
 // если возращается false, то датчики не получили новые значения
 // если возращается true, то датчики получили новые значения
 bool run_ds(TimeStamp time)
@@ -505,7 +577,7 @@ bool run_ds(TimeStamp time)
   static TimeStamp convertTime = 0;
   static bool isFind[4] = { false, false, false, false };
   static byte rom[4][8];
-  static OneWire ds[4] = { 
+  static OneWire ds[4] = {
     OneWire(pinDS2), // Температура воды Котел подача  ДТ2
     OneWire(pinDS3), // Температура воды Котел обратка ДТ3
     OneWire(pinDS4), // Температура воды ТА Верхняя часть ДТ4
@@ -528,8 +600,8 @@ bool run_ds(TimeStamp time)
       ram[k] = ds[i].read();
     }
     if (OneWire::crc8(ram, 8) == ram[8]) { // если crc верно
-      sensorOnline[i] = true; 
-      int divider = 0;      
+      sensorOnline[i] = true;
+      int divider = 0;
       if (rom[i][0] == 0x10) // если это 18S20
         divider = 2;
       else if (rom[i][0] == 0x28) // если это 18B20
@@ -559,22 +631,21 @@ bool run_ds(TimeStamp time)
   convertTime = getUTCTime();
   return true;
 }
- 
-//----------------------------- 
+
+//-----------------------------
 void temperaturePrint(int sensorNumber) {
-  if (sensorOnline[sensorNumber]) {  
+  if (sensorOnline[sensorNumber]) {
     Serial.print("Temp ");
     Serial.print(sensorNumber);
     Serial.print(" is ");
-    Serial.print(tempCels[sensorNumber],2);
+    Serial.print(tempCels[sensorNumber], 2);
     Serial.print("C.\n");
-    } 
-  else { 
+  }
+  else {
     Serial.print("Sensor ");
     Serial.print(sensorNumber);
     Serial.print(" not connected\n");
     delay (200); // 200
-   }
+  }
   return;
- } 
-
+}
