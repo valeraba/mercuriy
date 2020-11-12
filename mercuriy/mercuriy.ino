@@ -601,8 +601,8 @@ bool run_ds(TimeStamp time)
     for (byte k = 0; k < 9; k++) {
       ram[k] = ds[i].read();
     }
+    sensorOnline[i] = false;
     if (OneWire::crc8(ram, 8) == ram[8]) { // если crc верно
-      sensorOnline[i] = true;
       int divider = 0;
       if (rom[i][0] == 0x10) // если это 18S20
         divider = 2;
@@ -611,10 +611,14 @@ bool run_ds(TimeStamp time)
       else
         Serial.print("Sensor is error type.");
       float temp = (__int16)((ram[1] << 8) | ram[0]);
-      tempCels[i] = temp / divider;
+      temp /= divider;
+
+      if (temp != 85) {
+        tempCels[i] = temp;
+        sensorOnline[i] = true;
+      }
     }
-    else
-      sensorOnline[i] = false;
+
   }
 
   // запустим процесс измерения
